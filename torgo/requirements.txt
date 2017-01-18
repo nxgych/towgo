@@ -1,0 +1,6 @@
+futures
+tornado
+redis
+requests
+elasticsearch
+happybase
