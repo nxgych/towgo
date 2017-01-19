@@ -21,8 +21,11 @@ class ColumnFamliyExceotion(Exception):
 class Connection(object):
     '''
     happybase connection class
-    if you wanna to use more method of happybase, you can init this class directly without Model
+    you should execute the class method 'connect' before you create a instance of 'Connection'
+    @example:
+        Connection.connect(host='127.0.0.1',port=9090)
     
+    if you wanna to use more method of happybase, you can init this class directly without Model
     @example:
         conn = Connection('table')
         conn.table.method()

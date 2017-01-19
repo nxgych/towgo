@@ -7,6 +7,8 @@ Created on 2017年1月9日
 
 from __future__ import absolute_import
 
+from multiprocessing import cpu_count
+
 from tornado.web import Application
 from tornado.ioloop import IOLoop
 from tornado.httpserver import HTTPServer
@@ -42,6 +44,7 @@ class Server(object):
     
     def __init__(self):
         self.__init_method = None  
+        self.__process_num = 0
     
     def start(self):
         '''
@@ -51,7 +54,7 @@ class Server(object):
         server = HTTPServer(application)  
         if settings.MULTI_PROCESS:
             server.bind(options.port)
-            server.start(0)
+            server.start(self.__process_num)
         else:
             server.listen(options.port)  
         
@@ -67,3 +70,7 @@ class Server(object):
             raise FunctionException("'%s' is not a function" % method)
         self.__init_method = method
     
+    def setProcessNum(self, num=0):
+        if num >= 0 and num <= cpu_count():
+            self.__process_num = num
+            
