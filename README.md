@@ -19,7 +19,7 @@ refer to demo
 
     server = Server()
     
-    #设置服务初始化函数，initialize是一个用于初始化的函数对象,项目的初始化处理可以卸载该方法中
+    #设置服务初始化函数，initialize是一个用于初始化的函数对象,项目的初始化处理可以写在该方法中
     server.setInitMethod(initialize) 
     
     #服务启动

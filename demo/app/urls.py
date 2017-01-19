@@ -6,7 +6,6 @@ Created on 2017年1月5日
 '''
 
 from tornado.web import url
-
 from .handlers import test_handler
 
 urls = [
