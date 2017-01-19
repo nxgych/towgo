@@ -3,7 +3,7 @@
 
 '''
 Created on 2016/11/04
-@author: shuai.chen
+@author: willing
 @qq: 815738968
 @url: https://github.com/nxgych/whbase
 
@@ -21,7 +21,7 @@ class ColumnFamliyExceotion(Exception):
 class Connection(object):
     '''
     happybase connection class
-    you should execute the class method 'connect' before you create a instance of 'Connection'
+    you must execute the class method 'connect' before you create a instance of 'Connection'
     @example:
         Connection.connect(host='127.0.0.1',port=9090)
     
@@ -45,7 +45,7 @@ class Connection(object):
     @classmethod
     def connect(cls, **kwargs):
         '''
-        happybase connect, you must execute this method before you use hbase models
+        happybase connect, you must execute this method before you create a instance of 'Connection'
         
         @example:
             Connection.connect(host='127.0.0.1',port=9090)
@@ -109,8 +109,9 @@ class PrimaryKeyException(Exception):
 
 class Model(object):  
     """
-    Base model of hbase
-    you can inherit this class if you hope to use instance method or class method of Model object
+    Base model of hbase,
+    you can inherit this class if you hope to use instance method or class method of Model object,
+    you must execute the class method 'connect' of 'Connection' class before you use Model
     
     @example:
     
@@ -259,12 +260,17 @@ class Model(object):
         @param result: result get from happybase  
         '''
         instance = cls(conn)
-        for k,v in cls.__dict__.iteritems():
-            if k in instance._columns:  
-                fname = instance._getFieldName(v.field_name)
-                value = result.get(fname, None)
-                value = v.getValue(value) if value else value
-                setattr(instance, k, value)          
+        class_dict = cls.__dict__
+        for k,_ in instance._columns.iteritems():
+            v = class_dict.get(k)
+            if not v:
+                continue
+            
+            fname = instance._getFieldName(v.field_name)
+            value = result.get(fname, None)
+            value = v.getValue(value) if value else value
+            setattr(instance, k, value)     
+                 
         instance.setKey(key)             
         return instance    
                     
