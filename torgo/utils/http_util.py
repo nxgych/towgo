@@ -17,7 +17,7 @@ def _get_request_url(path, params={}):
     return "%s&%s"%(path,p) if "?" in path else "%s?%s"%(path,p) if p else path
    
 
-def httplib_request(domain, path, method="GET", use_ssl=False, params={}, headers={}):
+def httplib_request(domain, path, method="GET", use_ssl=False, params={}, headers={}, timeout=10):
     '''
     http/https request
     @param domain: http:port  or domain
@@ -31,9 +31,9 @@ def httplib_request(domain, path, method="GET", use_ssl=False, params={}, header
     http_client = None
     try:
         if use_ssl:
-            http_client = httplib.HTTPSConnection(domain, timeout=10)
+            http_client = httplib.HTTPSConnection(domain, timeout)
         else:
-            http_client = httplib.HTTPConnection(domain, timeout=10)    
+            http_client = httplib.HTTPConnection(domain, timeout)    
         
         if method.upper() == "GET":
             req_url = _get_request_url(path,params) 

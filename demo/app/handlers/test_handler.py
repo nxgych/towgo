@@ -13,6 +13,7 @@ from torgo.log.log_util import CommonLog
 class TestHandler(AsyncHandler):    
     """
     test
+    overwrite '_post' or '_get'
     """
     def _post(self):
         try:

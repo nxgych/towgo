@@ -4,7 +4,7 @@
 Created on 2017年1月3日
 @author: shuai.chen
 @qq: 815738968
-@email: nxgycf@163.com
+@email: nxgych@163.com
 '''
 
 from __future__ import absolute_import
@@ -28,7 +28,7 @@ if __name__ == "__main__":
     os.environ.setdefault('TORGO_APP_SETTINGS', options.settings) 
 
     from torgo.server import Server
-    from .app import initialize
+    from demo.app import initialize
     server = Server()
     server.setInitMethod(initialize)
     
