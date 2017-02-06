@@ -34,10 +34,10 @@ class SQLAlchemy(object):
     def __new__(cls, dbname='default', *args, **kwargs):
         if dbname not in cls._engine:
             cls._engine[dbname] = cls.connect(dbname, **kwargs)
-        return super(SQLAlchemy, cls).__new__(cls, *args, **kwargs)
+        return super(SQLAlchemy, cls).__new__(cls)
     
     
-    def __init__(self,dbname='default'):
+    def __init__(self,dbname='default', *args, **kwargs):
         self._dbname = dbname
         
     @staticmethod
