@@ -83,6 +83,5 @@ class SQLAlchemyBaseModel(MetaBaseModel):
         return SQLAlchemy().get_session()
     
     def as_dict(self):
-        return dict((col.name, getattr(self, col.name)) \
-                    for col in class_mapper(self.__class__).mapped_table.c)
+        return dict((col.name, getattr(self, col.name)) for col in class_mapper(self.__class__).mapped_table.c)
     
