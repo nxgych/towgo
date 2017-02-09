@@ -12,6 +12,26 @@ PROJECT_PATH = os.path.dirname(os.path.dirname(__file__))
 MULTI_PROCESS = True
 ASYNC_THREAD_POOL = 50
 
+#debug
+DEBUG = False
+
+#static path
+STATIC_PATH = os.path.join(PROJECT_PATH,'static')
+
+#templates path
+TEMPLATE_PATH = os.path.join(PROJECT_PATH,'templates')
+
+#xsrf configuration
+XSRF_COOKIES = False
+COOKIE_SECRET = "TORGO_COOKIE_SECRET"
+
+#session configuration
+SESSION = {
+    "storage":"torgo.cache.redis_cache.Cache",
+    "secret":"TORGO_SESSION_SECRET",
+    "timeout": 7*24*3600
+}
+
 #log configuration
 LOG = {        
     "path":os.path.join(PROJECT_PATH,'logs'),

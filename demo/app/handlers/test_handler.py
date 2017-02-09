@@ -18,11 +18,19 @@ class TestHandler(AsyncHandler):
     def _post(self):
         try:
             params = self.get_body_params()
-            
             uid = params['uid']
             CommonLog.info("uid:" + uid)
-            return "success"
+            self.write("success")
         except:
             CommonLog.error('TestHandler:'+traceback.format_exc())
-            return "error"  
+            self.write("error")
+            
+    def _get(self):
+        try:
+            uid = self.get_argument('uid','')
+            CommonLog.info("uid:" + uid)
+            self.write("success")
+        except:
+            CommonLog.error('TestHandler:'+traceback.format_exc())
+            self.write("error")                
         

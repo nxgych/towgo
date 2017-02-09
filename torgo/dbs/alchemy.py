@@ -69,7 +69,7 @@ def ping_connection(dbapi_connection, connection_record, connection_proxy):
         
 
 MetaBaseModel = declarative_base()
-class SQLAlchemyBaseModel(MetaBaseModel):
+class BaseModel(MetaBaseModel):
     __abstract__ = True
     __table_args__ = {
         'mysql_engine': 'InnoDB',

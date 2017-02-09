@@ -16,6 +16,8 @@ class Cache(object):
     def __init__(self, rdb='default'):
         self.conn = RedisConn(rdb).get_conn()
     
+    def get_conn(self):
+        return self.conn
     
     def __set(self,key,value,expire=0,add_only=False):
         """

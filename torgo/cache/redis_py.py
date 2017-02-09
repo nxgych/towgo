@@ -9,6 +9,7 @@ Created on 2016年4月22日
 import redis
 import traceback
 
+from torgo.msetting import settings
 from torgo.log.log_util import CommonLog
 
 
@@ -31,7 +32,8 @@ class RedisConn(object):
     @staticmethod
     def connect(rdb, **kwargs):
         try:
-            return redis.ConnectionPool(**kwargs)
+            config = kwargs if kwargs else settings.REDIS[rdb]
+            return redis.ConnectionPool(**config)
         except:
             CommonLog.error('redis connect error:'+traceback.format_exc())
        

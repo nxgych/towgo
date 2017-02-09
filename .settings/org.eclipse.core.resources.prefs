@@ -1,4 +1,5 @@
 eclipse.preferences.version=1
+encoding//demo/__init__.py=utf-8
 encoding//demo/app/__init__.py=utf-8
 encoding//demo/app/handlers/test_handler.py=utf-8
 encoding//demo/app/urls.py=utf-8
@@ -15,6 +16,11 @@ encoding//torgo/dbs/hbase.py=utf-8
 encoding//torgo/gsetting.py=utf-8
 encoding//torgo/handler.py=utf-8
 encoding//torgo/log/log_util.py=utf-8
+encoding//torgo/log/logger.py=utf-8
 encoding//torgo/log/mlogger.py=utf-8
+encoding//torgo/msetting.py=utf-8
 encoding//torgo/server.py=utf-8
+encoding//torgo/session/manager.py=utf-8
+encoding//torgo/utils/decos.py=utf-8
 encoding//torgo/utils/http_util.py=utf-8
+encoding//torgo/utils/tpool.py=utf-8

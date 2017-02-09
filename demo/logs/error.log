@@ -1,0 +1,109 @@
+[2017-02-08 17:43:41,344]-test_handler.py:37-ERROR - TestHandler:Traceback (most recent call last):
+  File "/Users/shuai.chen/github/torgo/demo/app/handlers/test_handler.py", line 32, in _get
+    self.set_current_user(uid)
+  File "/Users/shuai.chen/github/torgo/torgo/handler.py", line 88, in set_current_user
+    self.session.save()
+  File "/Users/shuai.chen/github/torgo/torgo/session/manager.py", line 36, in save
+    self.session_manager.set(self.request_handler, self)
+  File "/Users/shuai.chen/github/torgo/torgo/session/manager.py", line 89, in set
+    self.redis.setex(session.session_id, self.session_timeout, session_data)
+  File "build/bdist.macosx-10.6-intel/egg/redis/client.py", line 2014, in setex
+    return self.execute_command('SETEX', name, time, value)
+  File "build/bdist.macosx-10.6-intel/egg/redis/client.py", line 573, in execute_command
+    return self.parse_response(connection, command_name, **options)
+  File "build/bdist.macosx-10.6-intel/egg/redis/client.py", line 585, in parse_response
+    response = connection.read_response()
+  File "build/bdist.macosx-10.6-intel/egg/redis/connection.py", line 582, in read_response
+    raise response
+ResponseError: value is not an integer or out of range
+
+[2017-02-08 17:44:52,498]-test_handler.py:37-ERROR - TestHandler:Traceback (most recent call last):
+  File "/Users/shuai.chen/github/torgo/demo/app/handlers/test_handler.py", line 32, in _get
+    self.set_current_user({'uid':uid})
+  File "/Users/shuai.chen/github/torgo/torgo/handler.py", line 88, in set_current_user
+    self.session.save()
+  File "/Users/shuai.chen/github/torgo/torgo/session/manager.py", line 36, in save
+    self.session_manager.set(self.request_handler, self)
+  File "/Users/shuai.chen/github/torgo/torgo/session/manager.py", line 89, in set
+    self.redis.setex(session.session_id, self.session_timeout, session_data)
+  File "build/bdist.macosx-10.6-intel/egg/redis/client.py", line 2014, in setex
+    return self.execute_command('SETEX', name, time, value)
+  File "build/bdist.macosx-10.6-intel/egg/redis/client.py", line 573, in execute_command
+    return self.parse_response(connection, command_name, **options)
+  File "build/bdist.macosx-10.6-intel/egg/redis/client.py", line 585, in parse_response
+    response = connection.read_response()
+  File "build/bdist.macosx-10.6-intel/egg/redis/connection.py", line 582, in read_response
+    raise response
+ResponseError: value is not an integer or out of range
+
+[2017-02-08 17:46:37,035]-test_handler.py:37-ERROR - TestHandler:Traceback (most recent call last):
+  File "/Users/shuai.chen/github/torgo/demo/app/handlers/test_handler.py", line 32, in _get
+    self.set_current_user({'uid':uid})
+  File "/Users/shuai.chen/github/torgo/torgo/handler.py", line 88, in set_current_user
+    self.session.save()
+  File "/Users/shuai.chen/github/torgo/torgo/session/manager.py", line 36, in save
+    self.session_manager.set(self.request_handler, self)
+  File "/Users/shuai.chen/github/torgo/torgo/session/manager.py", line 89, in set
+    self.redis.setex(session.session_id, self.session_timeout, session_data)
+  File "build/bdist.macosx-10.6-intel/egg/redis/client.py", line 2014, in setex
+    return self.execute_command('SETEX', name, time, value)
+  File "build/bdist.macosx-10.6-intel/egg/redis/client.py", line 573, in execute_command
+    return self.parse_response(connection, command_name, **options)
+  File "build/bdist.macosx-10.6-intel/egg/redis/client.py", line 585, in parse_response
+    response = connection.read_response()
+  File "build/bdist.macosx-10.6-intel/egg/redis/connection.py", line 582, in read_response
+    raise response
+ResponseError: value is not an integer or out of range
+
+[2017-02-08 17:47:56,709]-test_handler.py:37-ERROR - TestHandler:Traceback (most recent call last):
+  File "/Users/shuai.chen/github/torgo/demo/app/handlers/test_handler.py", line 32, in _get
+    self.set_current_user({'uid':uid})
+  File "/Users/shuai.chen/github/torgo/torgo/handler.py", line 88, in set_current_user
+    self.session.save()
+  File "/Users/shuai.chen/github/torgo/torgo/session/manager.py", line 36, in save
+    self.session_manager.set(self.request_handler, self)
+  File "/Users/shuai.chen/github/torgo/torgo/session/manager.py", line 90, in set
+    self.redis.setex(session.session_id, self.session_timeout, session_data)
+  File "build/bdist.macosx-10.6-intel/egg/redis/client.py", line 2014, in setex
+    return self.execute_command('SETEX', name, time, value)
+  File "build/bdist.macosx-10.6-intel/egg/redis/client.py", line 573, in execute_command
+    return self.parse_response(connection, command_name, **options)
+  File "build/bdist.macosx-10.6-intel/egg/redis/client.py", line 585, in parse_response
+    response = connection.read_response()
+  File "build/bdist.macosx-10.6-intel/egg/redis/connection.py", line 582, in read_response
+    raise response
+ResponseError: value is not an integer or out of range
+
+[2017-02-08 18:06:15,449]-test_handler.py:37-ERROR - TestHandler:Traceback (most recent call last):
+  File "/Users/shuai.chen/github/torgo/demo/app/handlers/test_handler.py", line 32, in _get
+    self.set_current_user({'uid':uid})
+  File "/Users/shuai.chen/github/torgo/torgo/handler.py", line 88, in set_current_user
+    self.session.save()
+  File "/Users/shuai.chen/github/torgo/torgo/session/manager.py", line 36, in save
+    self.session_manager.set(self.request_handler, self)
+  File "/Users/shuai.chen/github/torgo/torgo/session/manager.py", line 90, in set
+    self.redis.setex(session.session_id, self.session_timeout, session_data)
+  File "build/bdist.macosx-10.6-intel/egg/redis/client.py", line 2014, in setex
+    return self.execute_command('SETEX', name, time, value)
+  File "build/bdist.macosx-10.6-intel/egg/redis/client.py", line 573, in execute_command
+    return self.parse_response(connection, command_name, **options)
+  File "build/bdist.macosx-10.6-intel/egg/redis/client.py", line 585, in parse_response
+    response = connection.read_response()
+  File "build/bdist.macosx-10.6-intel/egg/redis/connection.py", line 582, in read_response
+    raise response
+ResponseError: value is not an integer or out of range
+
+[2017-02-08 18:10:13,619]-test_handler.py:37-ERROR - TestHandler:Traceback (most recent call last):
+  File "/Users/shuai.chen/github/torgo/demo/app/handlers/test_handler.py", line 30, in _get
+    print self.get_current_user()
+  File "/Users/shuai.chen/github/torgo/torgo/handler.py", line 84, in get_current_user
+    return pickle.loads(user) if user else None
+TypeError: must be string, not unicode
+
+[2017-02-08 18:10:50,281]-test_handler.py:37-ERROR - TestHandler:Traceback (most recent call last):
+  File "/Users/shuai.chen/github/torgo/demo/app/handlers/test_handler.py", line 30, in _get
+    print self.get_current_user()
+  File "/Users/shuai.chen/github/torgo/torgo/handler.py", line 85, in get_current_user
+    return pickle.loads(user) if user else None
+TypeError: must be string, not unicode
+

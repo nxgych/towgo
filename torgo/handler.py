@@ -18,6 +18,7 @@ from tornado.web import asynchronous
 from tornado.web import HTTPError
 
 from torgo.msetting import settings
+from torgo.session.manager import Session
 from torgo.log.log_util import CommonLog
 
 
@@ -30,12 +31,16 @@ class AsyncHandler(RequestHandler):
     
     executor = ThreadPoolExecutor(settings.ASYNC_THREAD_POOL)
 
+    def __init__(self, *args, **kwargs):
+        super(AsyncHandler, self).__init__(*args, **kwargs)
+        self.session = Session(self.application.session_manager, self)
+    
     @asynchronous
     @gen.coroutine
     def get(self):
         try:
-            result = yield self._async_execute_get() 
-            self.write(result) 
+            yield self._async_execute_get() 
+#             self.write(result) 
         except:
             class_name = self.__class__.__name__.split('_')[0]
             CommonLog.error("%s error: %s" % (class_name, traceback.format_exc()))
@@ -47,8 +52,8 @@ class AsyncHandler(RequestHandler):
     @gen.coroutine
     def post(self):
         try:
-            result = yield self._async_execute_post() 
-            self.write(result) 
+            yield self._async_execute_post() 
+#             self.write(result) 
         except:
             class_name = self.__class__.__name__.split('_')[0]
             CommonLog.error("%s error: %s" % (class_name, traceback.format_exc()))
@@ -72,7 +77,21 @@ class AsyncHandler(RequestHandler):
                    
     def prepare(self):
         super(AsyncHandler, self).prepare()    
-                
+
+    def get_current_user(self, key='user_id'):
+        '''
+        get from session
+        '''
+        user = self.session.get(key)
+        return user
+    
+    def set_current_user(self, user, key='user_id'):
+        '''
+        save session
+        '''
+        self.session[key] = user
+        self.session.save()
+                    
     def get_body_params(self):
         """
         get post params as json
