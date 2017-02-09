@@ -34,6 +34,7 @@ refer to demo
 （2）、ASYNC_THREAD_POOL ：设定异步处理的线程池大小；</br>
 （3）、LOG ：日志配置；</br>
 （4）、APPS ：用于注册你的应用，类型为元组，例如demo中的app包；</br>
+（5）、SESSION ：session设置；</br>
  另外torgo中还内置了REDIS、SQLALCHEMY、MYSQL、HBASE等数据库的连接配置和连接模块，你可以根据自己的需要添加配置。
 
 ###3、urls.py</br>

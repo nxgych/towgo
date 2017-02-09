@@ -78,14 +78,14 @@ class AsyncHandler(RequestHandler):
     def prepare(self):
         super(AsyncHandler, self).prepare()    
 
-    def get_current_user(self, key='user_id'):
+    def get_current_user(self, key):
         '''
         get from session
         '''
         user = self.session.get(key)
         return user
     
-    def set_current_user(self, user, key='user_id'):
+    def set_current_user(self, user, key):
         '''
         save session
         '''
