@@ -84,5 +84,7 @@ HBASE = {
 
 #elasticsearch configuration
 ES = {
-    "nodes":[{"host":"127.0.0.1","port":9200}]
+    "nodes":[{"host":"127.0.0.1","port":9200}],
+    "sniffer_timeout":60,
+    "timeout":20
 }

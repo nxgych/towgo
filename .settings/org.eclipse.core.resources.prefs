@@ -7,6 +7,7 @@ encoding//demo/main.py=utf-8
 encoding//demo/settings/development.py=utf-8
 encoding//demo/settings/production.py=utf-8
 encoding//demo/settings/test.py=utf-8
+encoding//torgo/__init__.py=utf-8
 encoding//torgo/cache/local_cache.py=utf-8
 encoding//torgo/cache/redis_cache.py=utf-8
 encoding//torgo/cache/redis_py.py=utf-8

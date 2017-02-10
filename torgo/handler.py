@@ -40,7 +40,6 @@ class AsyncHandler(RequestHandler):
     def get(self):
         try:
             yield self._async_execute_get() 
-#             self.write(result) 
         except:
             class_name = self.__class__.__name__.split('_')[0]
             CommonLog.error("%s error: %s" % (class_name, traceback.format_exc()))
@@ -53,7 +52,6 @@ class AsyncHandler(RequestHandler):
     def post(self):
         try:
             yield self._async_execute_post() 
-#             self.write(result) 
         except:
             class_name = self.__class__.__name__.split('_')[0]
             CommonLog.error("%s error: %s" % (class_name, traceback.format_exc()))
@@ -82,14 +80,14 @@ class AsyncHandler(RequestHandler):
         '''
         get from session
         '''
-        user = self.session.get(key)
+        user = self.session.get(str(key))
         return user
     
     def set_current_user(self, user, key):
         '''
         save session
         '''
-        self.session[key] = user
+        self.session[str(key)] = user
         self.session.save()
                     
     def get_body_params(self):

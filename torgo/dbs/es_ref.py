@@ -35,9 +35,9 @@ class ElasticsearchConn(object):
                              config['nodes'], 
                              connection_class=RequestsHttpConnection,
                              sniff_on_start=True,
-                             sniffer_timeout=60,
                              sniff_on_connection_fail=True,
-                             retry_on_timeout=True
+                             retry_on_timeout=True,
+                             **config
                             )
             return conn.connection_pool
         except:
@@ -76,7 +76,7 @@ class ElasticsearchConn2(object):
             for hp in config['nodes']:
                 hp_list.append("%s:%d" % (hp['host'], hp['port']))
                 
-            return Elasticsearch(hp_list)    
+            return Elasticsearch(hp_list, **config)    
         except:
             CommonLog.error('elasticsearch connect error:'+traceback.format_exc())      
             
