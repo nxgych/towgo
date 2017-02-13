@@ -27,6 +27,7 @@ COOKIE_SECRET = "TORGO_COOKIE_SECRET"
 
 #session configuration
 SESSION = {
+    "open":True, #是否开启session           
     "storage":"torgo.cache.redis_cache.Cache",
     "secret":"TORGO_SESSION_SECRET",
     "timeout": 7*24*3600

@@ -13,7 +13,7 @@ from tornado.util import import_object
 
 import gsetting
 
-SETTINGS_MODULE_ENVIRON = "TORGO_APP_SETTINGS"
+SETTINGS_MODULE_ENVIRON = gsetting._SETTINGS_MODULE_ENVIRON
 
 class ConfigException(Exception):
     pass

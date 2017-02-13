@@ -33,7 +33,9 @@ class AsyncHandler(RequestHandler):
 
     def __init__(self, *args, **kwargs):
         super(AsyncHandler, self).__init__(*args, **kwargs)
-        self.session = Session(self.application.session_manager, self)
+        #set session
+        if settings.SESSION['open']:
+            self.session = Session(self.application.session_manager, self)
     
     @asynchronous
     @gen.coroutine

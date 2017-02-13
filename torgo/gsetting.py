@@ -10,6 +10,8 @@ import os
 #--------------------------required configuration below-------------------------
 PROJECT_PATH = os.path.dirname(os.path.dirname(__file__))
 
+_SETTINGS_MODULE_ENVIRON = "TORGO_APP_SETTINGS" #settings环境变量，请勿修改
+
 MULTI_PROCESS = True   #multiple process if true 
 ASYNC_THREAD_POOL = 50   #async thread pool size
 
@@ -28,6 +30,7 @@ COOKIE_SECRET = "TORGO_COOKIE_SECRET"
 
 #session configuration
 SESSION = {
+    "open":True, #是否开启session
     "storage":"torgo.cache.redis_cache.Cache",
     "secret":"TORGO_SESSION_SECRET",
     "timeout": 7*24*3600

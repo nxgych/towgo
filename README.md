@@ -8,11 +8,7 @@ download the realease package and unpack it, access the path and execute the com
 python setup.py install
 
 ##Tutorial</br>
-refer to demo
-
-	server启动参考demo中的main.py
-    run server command:
-    python main.py --settings=settings.development --port=7777
+参考demo，执行main.py脚本启动服务
  
 ##Instruction</br>    
 ###1、Server 类：</br>
@@ -34,7 +30,7 @@ refer to demo
 （2）、ASYNC_THREAD_POOL ：设定异步处理的线程池大小；</br>
 （3）、LOG ：日志配置；</br>
 （4）、APPS ：用于注册你的应用，类型为元组，例如demo中的app包；</br>
-（5）、SESSION ：session设置；</br>
+（5）、SESSION ：session设置,注意由于session存放在redis中，开启session时，需要配置REDIS数据库，并保证可正常使用；</br>
  另外torgo中还内置了REDIS、SQLALCHEMY、MYSQL、HBASE等数据库的连接配置和连接模块，你可以根据自己的需要添加配置。
 
 ###3、urls.py</br>
@@ -77,6 +73,7 @@ AsyncHandler 类是一个异步请求的基类，继承于RequestHandler， 用�
 ###6、cache模块</br>
 torgo中添加了redis连接模块及api模块，可以方便的选择使用；</br>
 
+	先定义initialize方法，Server实例需要设置initialize方法；
 	在initialize方法中添加如下代码，用于初始化redis的连接
 	
 	def initialize():
@@ -90,8 +87,14 @@ torgo中添加了redis连接模块及api模块，可以方便的选择使用；<
 	cache = Cache()
 	cache.set('a',1) 
 	cache.conn.sadd('x','a')
-	
 
+###7、utils模块</br>
+utils中加入了线程池、http request等工具类，可选择使用；</br>	
+
+    #线程池使用示例：
+	from torgo.utils.tpool import TPool 
+    tpool = TPool(1,1)  
+    tpool.addTask(str,100)
    
 
 

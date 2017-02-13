@@ -7,6 +7,7 @@ Created on 2017年1月9日
 
 from __future__ import absolute_import
 
+import os
 from multiprocessing import cpu_count
 
 from tornado.web import Application
@@ -15,7 +16,7 @@ from tornado.httpserver import HTTPServer
 from tornado.options import options
 
 from .msetting import settings
-from torgo.session.manager import SessionManager
+from .session.manager import SessionManager
 
 class FunctionException(Exception):
     pass
@@ -37,7 +38,8 @@ class App(Application):
         
         #session register
         sc = settings.SESSION 
-        self.session_manager = SessionManager(sc['storage'],sc['secret'],sc['timeout'])
+        if sc["open"]:
+            self.session_manager = SessionManager(sc['storage'],sc['secret'],sc['timeout'])
             
     @staticmethod
     def load_urls():
@@ -59,6 +61,13 @@ class Server(object):
         @param process_num: 启动进程数
         @param init_method: init method
         '''
+        #设置环境变量
+        os.environ.setdefault(settings._SETTINGS_MODULE_ENVIRON, options.settings) 
+
+        if init_method is not None:
+            if not hasattr(init_method,'__call__'):
+                raise FunctionException("'%s' is not a function" % init_method)
+                        
         self.__process_num = process_num
         self.__init_method = init_method  
     
