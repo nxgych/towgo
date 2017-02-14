@@ -84,20 +84,17 @@ class AsyncHandler(RequestHandler):
         '''
         if key is not None:
             return self.session.get(str(key))
-        return self.session
+        return self.session.get(self.session.session_id)
     
-    def set_session(self, obj, key=None):
+    def set_session(self, obj=None, key=None):
         '''
         put into session
         '''
         if key is not None:
             self.session[str(key)] = obj
-            self.session.save()
         else:
-            if isinstance(obj, dict):
-                for k,v in obj.iteritems():
-                    self.session[str(k)]  = v   
-                self.session.save()
+            self.session[self.session.session_id] = obj
+        self.session.save()
                     
     def get_body_params(self):
         """
