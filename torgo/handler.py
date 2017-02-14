@@ -78,19 +78,26 @@ class AsyncHandler(RequestHandler):
     def prepare(self):
         super(AsyncHandler, self).prepare()    
 
-    def get_current_user(self, key):
+    def get_session(self, key=None):
         '''
         get from session
         '''
-        user = self.session.get(str(key))
-        return user
+        if key is not None:
+            return self.session.get(str(key))
+        return self.session
     
-    def set_current_user(self, user, key):
+    def set_session(self, obj, key=None):
         '''
-        save session
+        put into session
         '''
-        self.session[str(key)] = user
-        self.session.save()
+        if key is not None:
+            self.session[str(key)] = obj
+            self.session.save()
+        else:
+            if isinstance(obj, dict):
+                for k,v in obj.iteritems():
+                    self.session[str(k)]  = v   
+                self.session.save()
                     
     def get_body_params(self):
         """

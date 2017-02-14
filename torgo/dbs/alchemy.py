@@ -43,7 +43,7 @@ class SQLAlchemy(object):
     @staticmethod
     def connect(dbname, **kwargs):
         try:
-            configs = kwargs
+            configs = kwargs if kwargs else settings.MYSQL[dbname]
             conn_url = URL('mysql+mysqldb',**configs)
             alchemy_args = settings.SQLALCHEMY
             return create_engine(conn_url, poolclass=QueuePool,**alchemy_args)
@@ -83,5 +83,5 @@ class BaseModel(MetaBaseModel):
         return SQLAlchemy().get_session()
     
     def as_dict(self):
-        return dict((col.name, getattr(self, col.name)) for col in class_mapper(self.__class__).mapped_table.c)
+        return {col.name:getattr(self, col.name) for col in class_mapper(self.__class__).mapped_table.c}
     
