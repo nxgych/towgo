@@ -12,7 +12,7 @@ from elasticsearch import Transport
 from elasticsearch.connection import RequestsHttpConnection 
 from elasticsearch.exceptions import NotFoundError
     
-# from torgo.msetting import settings                                            
+from torgo.msetting import settings                                            
                                                 
 class Connection(object):
     '''
@@ -27,7 +27,7 @@ class Connection(object):
     
     @staticmethod
     def connect(**kwargs):
-        config = kwargs
+        config = kwargs or settings.ES
         try:
             conn = Transport(
                              config['nodes'], 
@@ -127,7 +127,7 @@ class Connection2(object):
         
     @staticmethod
     def connect(**kwargs):
-        config = kwargs 
+        config = kwargs or settings.ES
         try:
             hp_list = []
             for hp in config['nodes']:

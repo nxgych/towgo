@@ -23,5 +23,6 @@ encoding//torgo/msetting.py=utf-8
 encoding//torgo/server.py=utf-8
 encoding//torgo/session/manager.py=utf-8
 encoding//torgo/utils/decos.py=utf-8
+encoding//torgo/utils/extend.py=utf-8
 encoding//torgo/utils/http_util.py=utf-8
 encoding//torgo/utils/tpool.py=utf-8
