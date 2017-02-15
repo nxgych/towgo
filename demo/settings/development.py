@@ -7,6 +7,7 @@ Created on 2017年1月5日
 
 import os
 
+#--------------------------basic configuration below-------------------------
 PROJECT_PATH = os.path.dirname(os.path.dirname(__file__))
 
 MULTI_PROCESS = True
@@ -27,7 +28,7 @@ COOKIE_SECRET = "TORGO_COOKIE_SECRET"
 
 #session configuration
 SESSION = {
-    "open":True, #是否开启session           
+    "open":False, #是否开启session           
     "storage":"torgo.cache.redis_cache.Cache",
     "secret":"TORGO_SESSION_SECRET",
     "timeout": 7*24*3600
@@ -45,6 +46,8 @@ LOG = {
 #app register
 APPS = ('app',)
 
+#--------------------------optional configuration below-------------------------
+
 #redis configuration
 REDIS = {
     "default":{
@@ -54,4 +57,35 @@ REDIS = {
         "password":"",
         "max_connections":100   
     }   
+}
+
+#sqlalchemy & mysql configuration
+SQLALCHEMY = {
+              "echo":False,
+              "pool_size":100,
+              "pool_recycle":3600,
+              "max_overflow":10,
+}
+MYSQL = {         
+        "default":{
+                 "host":"127.0.0.1",
+                 "port":3306,
+                 "username":"root",
+                 "password":"root",
+                 "database":"dbname",
+                 "query":{'charset':'utf8'}
+        }       
+}
+
+#hbase configuration
+HBASE = {
+    "host":"127.0.0.1",
+    "port":9090     
+}
+
+#elasticsearch configuration
+ES = {
+    "nodes":[{"host":"127.0.0.1","port":9200}],
+    "sniffer_timeout":60,
+    "timeout":20
 }

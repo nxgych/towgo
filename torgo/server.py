@@ -55,6 +55,12 @@ class App(Application):
     
     
 class Server(object):
+    """
+    @example:
+        server = Server()
+        server.setInitMethod(func)
+        server.start()     
+    """
     
     def __init__(self, process_num=0, init_method=None):
         '''

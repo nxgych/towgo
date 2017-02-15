@@ -25,7 +25,7 @@ class InitException(Exception):
     
 class Log(object):
     '''
-    use example:
+    @example:
         log = Log('文件名').get_logger()
         log.info('---')
     '''

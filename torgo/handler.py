@@ -5,7 +5,6 @@ Created on 2017年1月4日
 @author: shuai.chen
 '''
 
-import traceback
 from abc import ABCMeta
 
 from concurrent.futures import ThreadPoolExecutor
@@ -19,12 +18,15 @@ from tornado.web import HTTPError
 
 from torgo.msetting import settings
 from torgo.session.manager import Session
-from torgo.log.log_util import CommonLog
 
 
 class AsyncHandler(RequestHandler):
     '''
     async base handler
+    @example:
+        class TestHandler(AsyncHandler):  
+            def _post(self):
+                pass    
     '''
     
     __metaclass__ = ABCMeta
@@ -43,9 +45,7 @@ class AsyncHandler(RequestHandler):
         try:
             yield self._async_execute_get() 
         except:
-            class_name = self.__class__.__name__.split('_')[0]
-            CommonLog.error("%s error: %s" % (class_name, traceback.format_exc()))
-            self.write("server error!")  
+            raise 
         finally:
             if not self._finished: self.finish()    
                   
@@ -55,9 +55,7 @@ class AsyncHandler(RequestHandler):
         try:
             yield self._async_execute_post() 
         except:
-            class_name = self.__class__.__name__.split('_')[0]
-            CommonLog.error("%s error: %s" % (class_name, traceback.format_exc()))
-            self.write("server error!")  
+            raise
         finally:
             if not self._finished: self.finish()    
              
@@ -104,6 +102,5 @@ class AsyncHandler(RequestHandler):
             body = self.request.body
             return escape.json_decode(body) if body else {}
         except:
-            CommonLog.error('body parse error:'+traceback.format_exc())
             raise Exception("params error")
         

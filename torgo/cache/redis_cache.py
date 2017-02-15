@@ -7,14 +7,19 @@ Created on 2016年4月21日
 '''
 
 import cPickle as pickle
-
-from redis_py import RedisConn
-
+from redis_py import Connection
 
 class Cache(object):
+    """
+    @example:
+        from torgo.cache.redis_cache import Cache      
+        cache = Cache()
+        cache.set('a',1) 
+        cache.conn.sadd('x','a')    
+    """
 
     def __init__(self, rdb='default'):
-        self.conn = RedisConn(rdb).get_conn()
+        self.conn = Connection(rdb).get_conn()
     
     def get_conn(self):
         return self.conn

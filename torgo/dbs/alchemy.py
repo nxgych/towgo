@@ -5,8 +5,6 @@ Created on 2017年1月9日
 @author: shuai.chen
 '''
 
-import traceback
-
 from sqlalchemy import create_engine
 from sqlalchemy.orm import sessionmaker
 from sqlalchemy.engine.url import URL
@@ -21,34 +19,32 @@ from sqlalchemy import event
 from sqlalchemy.pool import Pool
 
 from torgo.msetting import settings
-from torgo.log.log_util import CommonLog
+# from torgo.log.log_util import CommonLog
 
 
-class SQLAlchemy(object):
+class Connection(object):
     '''
     sqlalchemy connection class
-    '''
-    
+    '''  
     _engine = {}
       
     def __new__(cls, dbname='default', *args, **kwargs):
         if dbname not in cls._engine:
             cls._engine[dbname] = cls.connect(dbname, **kwargs)
-        return super(SQLAlchemy, cls).__new__(cls)
-    
-    
+        return super(Connection, cls).__new__(cls)
+      
     def __init__(self,dbname='default', *args, **kwargs):
         self._dbname = dbname
         
     @staticmethod
     def connect(dbname, **kwargs):
         try:
-            configs = kwargs if kwargs else settings.MYSQL[dbname]
+            configs = kwargs or settings.MYSQL[dbname]
             conn_url = URL('mysql+mysqldb',**configs)
             alchemy_args = settings.SQLALCHEMY
             return create_engine(conn_url, poolclass=QueuePool,**alchemy_args)
         except:
-            CommonLog.error('SQLAlchemy.connect:%s' % traceback.format_exc())
+            raise
                
     def get_session(self):
         if self._dbname not in self._engine:
@@ -70,6 +66,32 @@ def ping_connection(dbapi_connection, connection_record, connection_proxy):
 
 MetaBaseModel = declarative_base()
 class BaseModel(MetaBaseModel):
+    '''
+    sqlalchemy base model
+    @example:
+        from sqlalchemy import *
+        #define model
+        class Demo(BaseModel):
+            id = Column('id',BigInteger,primary_key=True,autoincrement=True,nullable=False)
+            account = Column('account',String(32), unique=True, nullable=False)
+            password = Column('password',String(32),nullable=False)
+        
+        #create instance
+        demo = Demo()
+        demo.account = 'abc'
+        demo.password = '123456'
+        
+        #commit
+        session = Demo.session()
+        try:
+            session.add(demo)
+            session.commit()
+        except:
+            if session:session.rollback()
+        finally:
+            if session:session.close()   
+    '''
+        
     __abstract__ = True
     __table_args__ = {
         'mysql_engine': 'InnoDB',
@@ -79,8 +101,8 @@ class BaseModel(MetaBaseModel):
     @declared_attr
     def session(self):
         if hasattr(self, '__connection_name__'):
-            return SQLAlchemy(self.__connection_name__).get_session() 
-        return SQLAlchemy().get_session()
+            return Connection(self.__connection_name__).get_session() 
+        return Connection().get_session()
     
     def as_dict(self):
         return {col.name:getattr(self, col.name) for col in class_mapper(self.__class__).mapped_table.c}

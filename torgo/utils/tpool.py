@@ -69,6 +69,10 @@ class _Worker(threading.Thread):
 class TPool(object):
     '''
     Custom thread pool for asynchronous tasks
+    @example:
+        from torgo.utils.tpool import TPool 
+        tpool = TPool(1,1)  
+        tpool.addTask(func,*args)    
     '''
     
     def __init__(self, init_threads=1, max_threads=cpu_count()*2):

@@ -7,23 +7,20 @@ Created on 2016年4月22日
 '''
 
 import redis
-import traceback
 
 from torgo.msetting import settings
-from torgo.log.log_util import CommonLog
 
 
-class RedisConn(object):
+class Connection(object):
     """
     redis connection class
     """
-
     _pools = {}
 
     def __new__(cls, rdb='default', *args, **kwargs):
         if rdb not in cls._pools:
             cls._pools[rdb] = cls.connect(rdb, **kwargs)
-        return super(RedisConn, cls).__new__(cls)
+        return super(Connection, cls).__new__(cls)
     
     def __init__(self,rdb='default', *args, **kwargs):
         self.rdb = rdb
@@ -32,10 +29,10 @@ class RedisConn(object):
     @staticmethod
     def connect(rdb, **kwargs):
         try:
-            config = kwargs if kwargs else settings.REDIS[rdb]
+            config = kwargs or settings.REDIS[rdb]
             return redis.ConnectionPool(**config)
         except:
-            CommonLog.error('redis connect error:'+traceback.format_exc())
+            raise
        
     def get_conn(self):
         if not self._pools[self.rdb]:
