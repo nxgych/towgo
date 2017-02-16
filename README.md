@@ -30,8 +30,8 @@ python setup.py install
 （2）、ASYNC_THREAD_POOL ：设定异步处理的线程池大小；</br>
 （3）、LOG ：日志配置；</br>
 （4）、APPS ：用于注册你的应用，类型为元组，例如demo中的app包；</br>
-（5）、SESSION ：session设置,注意由于session存放在redis中，开启session时，需要配置REDIS数据库，并保证可正常使用；</br>
- 另外torgo中还内置了REDIS、SQLALCHEMY、MYSQL、HBASE等数据库的连接配置和连接模块，你可以根据自己的需要添加配置。
+（5）、SESSION ：session设置,注意由于session存放在redis中，开启session时，需要配置 REDIS 或 CODIS 数据库，并保证可正常使用；</br>
+ 另外torgo中还内置了REDIS、CODIS、SQLALCHEMY、MYSQL、HBASE等数据库的连接配置和连接模块，你可以根据自己的需要添加配置。
 
 ###3、urls.py</br>
 在你的应用包中必须包含urls.py，在该文件中定义你的请求路由。</br>
@@ -79,12 +79,12 @@ torgo中添加了redis连接模块及api模块，可以方便的选择使用；<
 	def initialize():
 		from torgo.msetting import settings
 	    #init redis
-	    from torgo.cache.redis_py import RedisConn
+	    from torgo.cache.db_cache import RedisCache
 	    for rdb,configs in settings.REDIS.iteritems():
-	        RedisConn(rdb,**configs)   
+	        RedisCache(rdb,**configs)   
 	        
-	from torgo.cache.redis_cache import Cache      
-	cache = Cache()
+	from torgo.cache.db_cache import RedisCache      
+	cache = RedisCache()
 	cache.set('a',1) 
 	cache.conn.sadd('x','a')
 

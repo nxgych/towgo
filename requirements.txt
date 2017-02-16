@@ -1,4 +1,5 @@
 futures
 tornado
-redis
 requests
+redis
+kazoo

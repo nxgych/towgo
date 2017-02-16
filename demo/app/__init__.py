@@ -11,8 +11,8 @@ def initialize():
     try:         
         from torgo.msetting import settings
         #init redis
-        from torgo.cache.redis_py import Connection
+        from torgo.cache.db_cache import RedisCache
         for rdb,configs in settings.REDIS.iteritems():
-            Connection(rdb,**configs)        
+            RedisCache(rdb,**configs)        
     except:
         CommonLog.error("initialize: %s" % traceback.format_exc())

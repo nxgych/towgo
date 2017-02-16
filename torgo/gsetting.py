@@ -31,7 +31,7 @@ COOKIE_SECRET = "TORGO_COOKIE_SECRET"
 #session configuration
 SESSION = {
     "open":False, #是否开启session
-    "storage":"torgo.cache.redis_cache.Cache",
+    "storage":"torgo.cache.db_cache.RedisCache",
     "secret":"TORGO_SESSION_SECRET",
     "timeout": 7*24*3600
 }
@@ -59,6 +59,15 @@ REDIS = {
         "password":"",
         "max_connections":100   
     }   
+}
+
+#codis configuration
+CODIS={
+       "default":{
+           "zk_addr":"127.0.0.1:2181",
+           "proxy_path":"/jodis/****",
+           "bueiness_id":""   #业务id，默认为空
+       }
 }
 
 #sqlalchemy & mysql configuration
