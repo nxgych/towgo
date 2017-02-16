@@ -66,7 +66,7 @@ CODIS={
        "default":{
            "zk_addr":"127.0.0.1:2181",
            "proxy_path":"/jodis/****",
-           "bueiness_id":""   #业务id，默认为空
+           "business_id":""   #业务id，默认为空
        }
 }
 

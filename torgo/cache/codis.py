@@ -21,7 +21,7 @@ class Connection(object):
     def __init__(self, *args, **kwargs):
         zkAddr = kwargs.get('zk_addr', '')
         proxyPath = kwargs.get('proxy_path', '')
-        businessID = kwargs.get('bueiness_id', '')
+        businessID = kwargs.get('business_id', '')
         
         self.__zkAddr = zkAddr
         self.__proxyPath = proxyPath
