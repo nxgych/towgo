@@ -19,8 +19,8 @@ class Connection(object):
     '''
     
     def __init__(self, *args, **kwargs):
-        zkAddr = kwargs.get('zk_addr', '')
-        proxyPath = kwargs.get('proxy_path', '')
+        zkAddr = kwargs.get('zk_addr', '127.0.0.1:2181')
+        proxyPath = kwargs.get('proxy_path', '/jodis/cache')
         businessID = kwargs.get('business_id', '')
         
         self.__zkAddr = zkAddr

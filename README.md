@@ -52,7 +52,7 @@ AsyncHandler 类是一个异步请求的基类，继承于RequestHandler， 用�
 	
 	class TestHandler(AsyncHandler):  
 	    def _post(self):
-	    	pass
+	    	self.write('success')
 	    	
 ###5、log模块</br>
 该模块可以用于多进程环境下的日志处理。</br>	    	
@@ -71,7 +71,7 @@ AsyncHandler 类是一个异步请求的基类，继承于RequestHandler， 用�
     log.info('---')	
 
 ###6、cache模块</br>
-torgo中添加了redis连接模块及api模块，可以方便的选择使用；</br>
+torgo中添加了redis及分布式缓存系统codis连接模块及api模块，可以方便的选择使用；</br>
 
 	先定义initialize方法，Server实例需要设置initialize方法；
 	在initialize方法中添加如下代码，用于初始化redis的连接
@@ -79,11 +79,12 @@ torgo中添加了redis连接模块及api模块，可以方便的选择使用；<
 	def initialize():
 		from torgo.msetting import settings
 	    #init redis
+	    #codis：from torgo.cache.db_cache import CodisCache 
 	    from torgo.cache.db_cache import RedisCache
 	    for rdb,configs in settings.REDIS.iteritems():
 	        RedisCache(rdb,**configs)   
 	        
-	from torgo.cache.db_cache import RedisCache      
+	from torgo.cache.db_cache import RedisCache  #codis：from torgo.cache.db_cache import CodisCache   
 	cache = RedisCache()
 	cache.set('a',1) 
 	cache.conn.sadd('x','a')

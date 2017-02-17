@@ -5,11 +5,12 @@ Created on 2017/01/04
 @author: shuai.chen
 '''
 
+from __future__ import absolute_import
 
 import threading  
 from multiprocessing import cpu_count
 
-from decos import singleton
+from .decos import singleton
 
 
 class _WorkerTask(object):  

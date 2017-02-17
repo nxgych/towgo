@@ -36,11 +36,12 @@ SESSION = {
 
 #log configuration
 LOG = {        
-    "path":os.path.join(PROJECT_PATH,'logs'),
+    "path":os.path.join(PROJECT_PATH,'logs'), #日志文件路径
     "files":{'info':"INFO",'error':"ERROR",'debug':"DEBUG"}, #{filename:level}
-    "suffix":"log",
-    "console":False,    #是否开启日志在控制台输出
-    "backup_count":10,  #日志文件存放期限（day）
+#     "when":"MIDNIGHT", #切换周期
+#     "suffix":"%Y-%m-%d", #根据切换周期添加的文件后缀
+#     "backup_count":10,  #日志文件存放期限（day）
+#     "console":False,    #是否开启日志在控制台输出
 }
 
 #app register

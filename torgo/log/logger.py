@@ -5,16 +5,18 @@ Created on 2017年1月4日
 @author: shuai.chen
 '''
 
+from __future__ import absolute_import
+
 import logging
 
-from mlogger import MultiProcessTimedRotatingFileHandler
+from .mlogger import MultiProcessTimedRotatingFileHandler
 
 class Logger(object):
     
-    suffix = "%Y-%m-%d"
-    fmt = "[%(asctime)s]-%(filename)s:%(lineno)s-%(levelname)s - %(message)s"
+    _fmt = "[%(asctime)s]-%(filename)s:%(lineno)s-%(levelname)s - %(message)s"
           
-    def __init__(self, ft, log_file, level, backup_count=10, console=False):
+    def __init__(self, ft, log_file, level, 
+                       when='MIDNIGHT', backup_count=10, suffix="%Y-%m-%d", console=False):
         """
         @param param: 
             log_file:日志文件
@@ -22,14 +24,14 @@ class Logger(object):
         """
         self.logger = logging.getLogger(ft)     
            
-        self.initialize(log_file, backup_count, console)    
+        self.initialize(log_file, when, backup_count, suffix, console)    
         self.set_level(level)   
 
-    def initialize(self,fname,backup_count,console):      
-        filehandle = MultiProcessTimedRotatingFileHandler(fname,"MIDNIGHT",1,
-                                                backupCount=backup_count,encoding="utf-8")
-        filehandle.suffix = self.suffix         
-        formatter = logging.Formatter(fmt=self.fmt)
+    def initialize(self,fname, when, backup_count, suffix, console):      
+        filehandle = MultiProcessTimedRotatingFileHandler(fname, when, 1,
+                                                backupCount=backup_count, encoding="utf-8")
+        filehandle.suffix = suffix         
+        formatter = logging.Formatter(fmt=self._fmt)
         filehandle.setFormatter(formatter)
         self.logger.addHandler(filehandle)  
     

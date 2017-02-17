@@ -28,18 +28,18 @@ class Connection(object):
     '''  
     _engine = {}
       
-    def __new__(cls, dbname='default', *args, **kwargs):
-        if dbname not in cls._engine:
-            cls._engine[dbname] = cls.connect(dbname, **kwargs)
+    def __new__(cls, conn_name='default', *args, **kwargs):
+        if conn_name not in cls._engine:
+            cls._engine[conn_name] = cls.connect(conn_name, **kwargs)
         return super(Connection, cls).__new__(cls)
       
-    def __init__(self,dbname='default', *args, **kwargs):
-        self._dbname = dbname
+    def __init__(self,conn_name='default', *args, **kwargs):
+        self._conn_name = conn_name
         
     @staticmethod
-    def connect(dbname, **kwargs):
+    def connect(conn_name, **kwargs):
         try:
-            configs = kwargs or settings.MYSQL[dbname]
+            configs = kwargs or settings.MYSQL[conn_name]
             conn_url = URL('mysql+mysqldb',**configs)
             alchemy_args = settings.SQLALCHEMY
             return create_engine(conn_url, poolclass=QueuePool,**alchemy_args)
@@ -47,9 +47,9 @@ class Connection(object):
             raise
                
     def get_session(self):
-        if self._dbname not in self._engine:
+        if self._conn_name not in self._engine:
             return None
-        return sessionmaker(bind=self._engine[self._dbname])
+        return sessionmaker(bind=self._engine[self._conn_name])
 
 
 @event.listens_for(Pool, "checkout")

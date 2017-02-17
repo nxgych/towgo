@@ -5,16 +5,18 @@ Created on 2017年2月16日
 @author: shuai.chen
 '''
 
+from __future__ import absolute_import
+
 import redis
 import cPickle as pickle
 
-from codis import Connection
+from .codis import Connection
 from torgo.msetting import settings
 
 
-class CacheInterface(object):
+class CacheBaseApi(object):
     '''
-    redis cache apis
+    redis cache base apis
     '''
     
     def get_conn(self):
@@ -72,7 +74,7 @@ class CacheInterface(object):
         return pickle.loads(val) 
 
     
-class RedisCache(CacheInterface):
+class RedisCache(CacheBaseApi):
     """
     @example:
         from torgo.cache.db_cache import RedisCache      
@@ -82,25 +84,24 @@ class RedisCache(CacheInterface):
     """
     _pools = {}
 
-    def __new__(cls, rdb='default', *args, **kwargs):
-        if rdb not in cls._pools:
-            cls._pools[rdb] = cls.connect(rdb, **kwargs)
+    def __new__(cls, conn_name='default', *args, **kwargs):
+        if conn_name not in cls._pools:
+            cls._pools[conn_name] = cls.connect(conn_name, **kwargs)
         return super(RedisCache, cls).__new__(cls)
     
-    def __init__(self,rdb='default', *args, **kwargs):
-        self.rdb = rdb
-        self.conn = redis.Redis(connection_pool = self._pools[rdb])  
+    def __init__(self,conn_name='default', *args, **kwargs):
+        self.conn = redis.Redis(connection_pool = self._pools[conn_name])  
 
     @staticmethod
-    def connect(rdb, **kwargs):
+    def connect(conn_name, **kwargs):
         try:
-            config = kwargs or settings.REDIS[rdb]
+            config = kwargs or settings.REDIS[conn_name]
             return redis.ConnectionPool(**config)
         except:
             raise
 
         
-class CodisCache(CacheInterface):
+class CodisCache(CacheBaseApi):
     """
     @example:
         from torgo.cache.db_cache import CodisCache      
@@ -110,18 +111,18 @@ class CodisCache(CacheInterface):
     """
     _connections = {}
     
-    def __new__(cls, rdb='default', *args, **kwargs):
-        if rdb not in cls._connections:
-            cls._connections[rdb] = cls.connect(rdb, **kwargs)
+    def __new__(cls, conn_name='default', *args, **kwargs):
+        if conn_name not in cls._connections:
+            cls._connections[conn_name] = cls.connect(conn_name, **kwargs)
         return super(CodisCache, cls).__new__(cls)
 
-    def __init__(self, rdb='default', *args, **kwargs):
-        self.conn = self._connections[rdb].getResource()
+    def __init__(self, conn_name='default', *args, **kwargs):
+        self.conn = self._connections[conn_name].getResource()
         
     @staticmethod
-    def connect(rdb, **kwargs):  
+    def connect(conn_name, **kwargs):  
         try:  
-            configs = kwargs or settings.CODIS[rdb]
+            configs = kwargs or settings.CODIS[conn_name]
             return Connection(**configs)
         except:
             raise

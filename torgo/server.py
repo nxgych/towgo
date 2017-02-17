@@ -38,8 +38,8 @@ class App(Application):
         
         #session register
         sc = settings.SESSION 
-        if sc["open"]:
-            self.session_manager = SessionManager(sc['storage'],sc['secret'],sc['timeout'])
+        if sc.get("open",False):
+            self.session_manager = SessionManager(sc.get('storage'),sc.get('secret'),sc.get('timeout'))
             
     @staticmethod
     def load_urls():

@@ -11,6 +11,9 @@ import hmac
 import hashlib
 import json
 
+DEFAULT_STORAGE = "torgo.cache.db_cache.RedisCache"
+DEFAULT_SECRET = "TORGO_SESSION_SECRET"
+DEFAULT_TIMEOUT = 24*3600
 
 class SessionData(dict):
     
@@ -38,10 +41,11 @@ class Session(SessionData):
 class SessionManager(object):
     
     def __init__(self, storege, secret, timeout):
-        self.secret = secret
-        self.session_timeout = timeout
+        self.secret = secret or DEFAULT_SECRET
+        self.session_timeout = timeout or DEFAULT_TIMEOUT
         try:
-            parts = storege.split('.')
+            storege_class = storege or DEFAULT_STORAGE
+            parts = storege_class.split('.')
             obj = __import__('.'.join(parts[:-1]), None, None, [parts[-1]], 0)
             clazz = getattr(obj, parts[-1])            
             self.redis = clazz().get_conn()

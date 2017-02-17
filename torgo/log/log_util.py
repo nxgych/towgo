@@ -5,9 +5,11 @@ Created on 2017年1月4日
 @author: shuai.chen
 '''
 
+from __future__ import absolute_import
+
 import os
 
-from logger import Logger
+from .logger import Logger
 from torgo.msetting import settings
 
 class InitException(Exception):  
@@ -42,13 +44,13 @@ class Log(object):
             path = log_config['path']
             if not os.path.exists(path):
                 os.mkdir(path)
-                
-            suffix = log_config.get("suffix","log")
-            fn = os.path.join(path,"{0}.{1}".format(ft,suffix))
-            lv = files[ft]
+            
+            fn = os.path.join(path,"{0}.{1}".format(ft,"log"))
             cls.LOGS[ft] = Logger(
-                                  ft,fn,lv,
+                                  ft,fn,files[ft],
+                                  log_config.get("when","MIDNIGHT"),
                                   log_config.get('backup_count',10),
+                                  log_config.get("suffix","%Y-%m-%d"),
                                   log_config.get('console',False)
                                   )
         return super(Log, cls).__new__(cls)    

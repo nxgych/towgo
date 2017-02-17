@@ -5,6 +5,8 @@ Created on 2017年1月4日
 @author: shuai.chen
 '''
 
+from __future__ import absolute_import
+
 from abc import ABCMeta
 
 from concurrent.futures import ThreadPoolExecutor
@@ -16,8 +18,8 @@ from tornado.web import RequestHandler
 from tornado.web import asynchronous
 from tornado.web import HTTPError
 
-from torgo.msetting import settings
-from torgo.session.manager import Session
+from .msetting import settings
+from .session.manager import Session
 
 
 class AsyncHandler(RequestHandler):
@@ -36,7 +38,7 @@ class AsyncHandler(RequestHandler):
     def __init__(self, *args, **kwargs):
         super(AsyncHandler, self).__init__(*args, **kwargs)
         #set session
-        if settings.SESSION['open']:
+        if settings.SESSION.get('open',False):
             self.session = Session(self.application.session_manager, self)
     
     @asynchronous
