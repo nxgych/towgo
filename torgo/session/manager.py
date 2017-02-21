@@ -48,15 +48,15 @@ class SessionManager(object):
             parts = storege_class.split('.')
             obj = __import__('.'.join(parts[:-1]), None, None, [parts[-1]], 0)
             clazz = getattr(obj, parts[-1])            
-            self.redis = clazz().get_conn()
+            self.cache = clazz().get_conn()
         except:
             raise                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                      
                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                               
     def _fetch(self, session_id):
         try:
-            session_data = raw_data = self.redis.get(session_id)
+            session_data = raw_data = self.cache.get(session_id)
             if raw_data != None:
-                self.redis.setex(session_id, raw_data, self.session_timeout)
+                self.cache.setex(session_id, raw_data, self.session_timeout)
                 session_data = json.loads(raw_data)
             if type(session_data) == type({}):
                 return session_data
@@ -92,7 +92,7 @@ class SessionManager(object):
         request_handler.set_secure_cookie("session_id", session.session_id)
         request_handler.set_secure_cookie("verification", session.hmac_key)
         session_data = json.dumps(dict(session.items()))
-        self.redis.setex(session.session_id, session_data, self.session_timeout)
+        self.cache.setex(session.session_id, session_data, self.session_timeout)
         
     def _generate_id(self):
         new_id = hashlib.sha256("{0}{1}".format(self.secret,str(uuid.uuid4())))
