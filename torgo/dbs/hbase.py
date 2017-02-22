@@ -282,7 +282,7 @@ class Model(object):
         if not self.__key:
             raise PrimaryKeyException("Value of primary key cannot be '%s'" % self.__key)   
                   
-        value = {self._getFieldName(k):str(v) for k,v in kwargs.iteritems()}
+        value = {self._getFieldName(k):str(v) for k,v in kwargs.iteritems() if k in self._columns}
         self.__conn.put(self.__key, value=value)    
 
     def save(self):
