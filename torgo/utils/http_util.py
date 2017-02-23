@@ -8,14 +8,14 @@ Created on 2017年1月9日
 import json
 import httplib
 import urllib2
+import re
 
-
-def _get_request_url(path, params={}):
-    '''generate request url'''
-    
+def get_request_url(path, params={}):
+    '''
+    generate request url
+    '''
     p = "&".join(["%s=%s" % (k,v) for k,v in params.iteritems()])
     return "%s&%s"%(path,p) if "?" in path else "%s?%s"%(path,p) if p else path
-   
 
 def httplib_request(domain, path, method="GET", use_ssl=False, params={}, headers={}, timeout=10):
     '''
@@ -26,8 +26,7 @@ def httplib_request(domain, path, method="GET", use_ssl=False, params={}, header
     @param use_ssl: https
     @param params: reques params
     @param headers: request headers     
-    '''
-    
+    ''' 
     http_client = None
     try:
         if use_ssl:
@@ -36,7 +35,7 @@ def httplib_request(domain, path, method="GET", use_ssl=False, params={}, header
             http_client = httplib.HTTPConnection(domain, timeout)    
         
         if method.upper() == "GET":
-            req_url = _get_request_url(path,params) 
+            req_url = get_request_url(path,params) 
             http_client.request("GET", req_url, headers=headers)           
         else:    
             http_client.request("POST", path, json.dumps(params), headers)
@@ -48,7 +47,6 @@ def httplib_request(domain, path, method="GET", use_ssl=False, params={}, header
     finally:
         if http_client: http_client.close()
 
-
 def urllib_request(url, method='GET', params={}, headers={}):
     '''
     @param url: url
@@ -58,7 +56,7 @@ def urllib_request(url, method='GET', params={}, headers={}):
     '''
     req = None
     if method.upper() == "GET":
-        req_url = _get_request_url(url,params) 
+        req_url = get_request_url(url,params) 
         req = urllib2.Request(req_url,headers=headers)
     else:
         req = urllib2.Request(url,json.dumps(params),headers)
@@ -68,3 +66,23 @@ def urllib_request(url, method='GET', params={}, headers={}):
         result = response.read()
         return result
     
+def ip_int(ip): 
+    '''
+    string ip to int ip
+    @param ip: string ip 
+    '''
+    if not (isinstance(ip, str) or isinstance(ip, unicode)):
+        raise TypeError("'ip' must be a string type")
+    if not re.match(r'^\d+.\d+.\d+.\d+$',ip):
+        raise ValueError("illegal ip : %s" % ip)
+    return reduce(lambda x,y:(x<<8)+y,map(int,ip.split('.')))   
+
+def ip_str(ip):
+    '''
+    int ip to str ip
+    @param ip: int ip 
+    '''
+    if not (isinstance(ip, int) or isinstance(ip, long)):
+        raise TypeError("'ip' must be a integer or long type")
+    fun = lambda x: '.'.join([str(x/(256**i)%256) for i in xrange(3,-1,-1)])
+    return fun(int(ip))

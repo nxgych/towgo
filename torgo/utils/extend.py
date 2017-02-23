@@ -48,6 +48,9 @@ class _Edict(dict):
 
     def _get(self, key):
         raise NotImplementedError()
+    
+    def has_key(self, key):
+        return key in self
         
     def update(self, dicto):
         with self.lock:

@@ -7,18 +7,20 @@ Created on 2017年2月16日
 
 from __future__ import absolute_import
 
+from abc import ABCMeta
+
 import redis
 import cPickle as pickle
 
 from .codis import Connection
 from torgo.msetting import settings
 
-
-class CacheBaseApi(object):
+class _Cache(object):
     '''
     redis cache base apis
-    '''
-    
+    '''   
+    __metaclass__ = ABCMeta
+     
     def get_conn(self):
         return self.conn
     
@@ -72,9 +74,8 @@ class CacheBaseApi(object):
         if val is None:
             return None
         return pickle.loads(val) 
-
-    
-class RedisCache(CacheBaseApi):
+  
+class RedisCache(_Cache):
     """
     @example:
         from torgo.cache.db_cache import RedisCache      
@@ -99,9 +100,8 @@ class RedisCache(CacheBaseApi):
             return redis.ConnectionPool(**config)
         except:
             raise
-
-        
-class CodisCache(CacheBaseApi):
+       
+class CodisCache(_Cache):
     """
     @example:
         from torgo.cache.db_cache import CodisCache      

@@ -19,7 +19,6 @@ from sqlalchemy import event
 from sqlalchemy.pool import Pool
 
 from torgo.msetting import settings
-# from torgo.log.log_util import CommonLog
 
 
 class Connection(object):
