@@ -4,7 +4,6 @@
 '''
 Created on 2016/11/04
 @author: willing
-@qq: 815738968
 @url: https://github.com/nxgych/whbase
 
 hbase orm based happybase

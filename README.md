@@ -1,7 +1,7 @@
 # torgo
 
 ## Description</br>
-torgo is a simple http server framework based tornado
+torgo is a simple web server framework based tornado
 
 ## Installation</br>
 download the realease package and unpack it, access the path and execute the command:</br>
@@ -13,7 +13,10 @@ python setup.py install
 ## Instruction</br>    
 ### 1、Server 类：</br>
 
-    server = Server()
+    #http server
+    server = HttpServer()
+    #tcp server
+    #server = TcpServer()
     
     #设置服务初始化函数，initialize是一个用于初始化的函数对象,项目的初始化处理可以写在该方法中
     server.setInitMethod(initialize) 
@@ -36,23 +39,41 @@ python setup.py install
 ### 3、urls.py</br>
 在你的应用包中必须包含urls.py，在该文件中定义你的请求路由。</br>
 
-	from tornado.web import url
-	from .handlers import test_handler
+    #http server
+	 from tornado.web import url
+	 from .handlers import test_handler
 	
-	urls = [
-	    #test    
+	 urls = [
+	    #test 
+	    # (url , handler)   
 	    url(r'/test', test_handler.TestHandler),
-	]
+	 ]
+	
+	 #tcp server
+	 from .handlers import test_handler
+	
+	 urls = [
+	    # (cmdId , handler)    
+	    (1, test_handler.TestHandler),       
+	 ]	
 
-### 4、AsyncHandler 类</br>
-AsyncHandler 类是一个异步请求的基类，继承于RequestHandler， 用来处理http请求。</br>
+### 4、Handler 类</br>
+AsyncHttpHandler/AsyncHandler 类是一个异步请求的基类，继承于RequestHandler， 用来处理http请求。</br>
 如果你需要使用异步非阻塞的请求处理特性，你的handler可以继承该类，post请求需要重写 _post 方法，get请求需要重写 _get 方法。</br>
 
-	from torgo.handler import AsyncHandler
+	from torgo.handler import AsyncHttpHandler
 	
-	class TestHandler(AsyncHandler):  
+	class TestHandler(AsyncHttpHandler):  
 	    def _post(self):
 	    	self.write('success')
+	    	
+TcpHandler 用于处理tcp请求的基类。需要重写 process 方法</br>	 
+ 
+	from torgo.handler import TcpHandler
+	
+	class TestHandler(TcpHandler):  
+	    def process(self):
+	    	self.write('success')  	
 	    	
 ### 5、log模块</br>
 该模块可以用于多进程环境下的日志处理。</br>	    	

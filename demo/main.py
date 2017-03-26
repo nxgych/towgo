@@ -3,8 +3,6 @@
 '''
 Created on 2017年1月3日
 @author: shuai.chen
-@qq: 815738968
-@email: nxgych@163.com
 '''
 
 from __future__ import absolute_import
@@ -23,9 +21,9 @@ if __name__ == "__main__":
     '''    
     tornado.options.parse_command_line()
 
-    from torgo.server import Server
+    from torgo.server import HttpServer
     from demo.app import initialize
-    server = Server()
+    server = HttpServer()
     server.setInitMethod(initialize)
     
     server.start()    

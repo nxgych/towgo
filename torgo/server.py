@@ -9,14 +9,21 @@ from __future__ import absolute_import
 
 import os
 from multiprocessing import cpu_count
+from abc import ABCMeta,abstractmethod
 
+import tornado
+from tornado.netutil import bind_sockets
 from tornado.web import Application
 from tornado.ioloop import IOLoop
 from tornado.httpserver import HTTPServer
 from tornado.options import options
+from tornado.tcpserver import TCPServer
 
 from .msetting import settings
 from .session.manager import SessionManager
+from .connection import Connection
+
+__all__ = ['HttpServer','TcpServer']
 
 class FunctionException(Exception):
     pass
@@ -52,16 +59,11 @@ class App(Application):
             m = __import__("%s.urls" % a, globals={}, locals={}, fromlist=['urls'])
             urls.extend(m.urls)
         return urls  
+
+class _BaseServer(object): 
     
-    
-class Server(object):
-    """
-    @example:
-        server = Server()
-        server.setInitMethod(func)
-        server.start()     
-    """
-    
+    __metaclass__ = ABCMeta   
+
     def __init__(self, process_num=0, init_method=None):
         '''
         @param process_num: 启动进程数
@@ -77,20 +79,9 @@ class Server(object):
         self.__process_num = process_num
         self.__init_method = init_method  
     
+    @abstractmethod    
     def start(self):
-        '''
-        start server
-        '''
-        application = App()
-        server = HTTPServer(application)  
-        if settings.MULTI_PROCESS:
-            server.bind(options.port)
-            server.start(self.__process_num)
-        else:
-            server.listen(options.port)  
-        
-        self.intialize()
-        IOLoop.instance().start()  
+        raise NotImplementedError    
         
     def intialize(self):
         if self.__init_method is not None:
@@ -111,3 +102,80 @@ class Server(object):
             raise FunctionException("'%s' is not a function" % method)
         self.__init_method = method
             
+class HttpServer(_BaseServer):
+    """
+    @example:
+        server = HttpServer()
+        server.setInitMethod(func)
+        server.start()     
+    """
+    
+    def start(self):
+        '''
+        start server
+        '''
+        application = App()
+        server = HTTPServer(application)  
+        if settings.MULTI_PROCESS:
+            server.bind(options.port)
+            server.start(self.__process_num)
+        else:
+            server.listen(options.port)  
+        
+        self.intialize()
+        IOLoop.instance().start()  
+
+class _TCPServer(TCPServer):
+    '''
+    base type of TCPServer that override handle_stream method here
+    in order to maintain the connection between servers
+    through IOStream.
+    '''
+    
+    def __new__(cls, *args, **kwargs):
+        if len(Connection.handler_mappings) <= 0:
+            Connection.handler_mappings = cls.load_urls()
+        return TCPServer.__new__(cls, *args, **kwargs)
+
+    def handle_stream(self, stream, address):
+        Connection(address=address, stream=stream, io_loop=self.io_loop)   
+        
+    @staticmethod
+    def load_urls():
+        '''
+        load urls
+        ''' 
+        apps = settings.APPS
+        mappings = {}
+        for a in apps:
+            m = __import__("%s.urls" % a, globals={}, locals={}, fromlist=['urls'])
+            for cmdId, handler in m.urls:
+                mappings[cmdId] = handler
+        return mappings           
+
+class TcpServer(_BaseServer):    
+    """
+    @example:
+        server = TcpServer()
+        server.setInitMethod(func)
+        server.start()     
+    """
+            
+    def start(self):
+        '''
+        start server
+        '''
+        server = _TCPServer()
+        if settings.MULTI_PROCESS:
+            server.bind(options.port)
+            server.start(self.__process_num)
+            for advanced_port in settings.ADVANCED_SERVER_PORT:
+                # bind more port if set
+                tornado.process.fork_processes(self.__process_num)
+                sockets = bind_sockets(advanced_port)
+                server.add_sockets(sockets)
+        else:
+            server.listen(options.port)
+            
+        self.intialize()
+        IOLoop.instance().start()  

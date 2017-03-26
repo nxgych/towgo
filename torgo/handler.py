@@ -7,7 +7,9 @@ Created on 2017年1月4日
 
 from __future__ import absolute_import
 
-from abc import ABCMeta
+import json
+import time
+from abc import ABCMeta,abstractmethod
 
 from concurrent.futures import ThreadPoolExecutor
 from tornado.concurrent import run_on_executor
@@ -21,10 +23,9 @@ from tornado.web import HTTPError
 from .msetting import settings
 from .session.manager import Session
 
-
 class AsyncHandler(RequestHandler):
     '''
-    async base handler
+    async base http handler
     @example:
         class TestHandler(AsyncHandler):  
             def _post(self):
@@ -105,4 +106,45 @@ class AsyncHandler(RequestHandler):
             return escape.json_decode(body) if body else {}
         except:
             raise Exception("params error")
+        
+class AsyncHttpHandler(AsyncHandler):
+    """
+    async base http handler
+    """      
+
+class TcpHandler(object):
+    
+    __metaclass__ = ABCMeta
+    
+    def __init__(self,request):
+        """
+        TCP base handler
+        """
+        if isinstance(request, Request):
+            self.request = request
+        else:
+            raise TypeError 
+
+    @abstractmethod
+    def process(self):
+        '''
+        This method needs to be overridden.
+        '''
+        raise NotImplementedError     
+
+class Request(object):
+    
+    def __init__(self, address=None, body=None):
+        """
+        TCP request
+        """
+        self.address = address
+        self.body = json.loads(body) if body is not None else {}
+        
+        self.cmdId = self.body.get('cmdId')
+        self.timestamp = int(self.body.get('timestamp', time.time()*1000))
+        self.params = self.body.get('params',{})
+
+    def as_json(self):
+        return json.dumps({'address':self.address, 'body':self.body})
         

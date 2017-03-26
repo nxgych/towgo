@@ -14,6 +14,7 @@ _SETTINGS_MODULE_ENVIRON = "TORGO_APP_SETTINGS" #settings环境变量，请勿�
 
 MULTI_PROCESS = True   #multiple process if true 
 ASYNC_THREAD_POOL = 50   #async thread pool size
+ADVANCED_SERVER_PORT = ()
 
 #debug
 DEBUG = False
