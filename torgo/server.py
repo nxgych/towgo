@@ -33,14 +33,15 @@ class App(Application):
     application
     """
     
-    def __init__(self):
+    def __init__(self, **kwargs):
         app_settings = dict(
             template_path=settings.TEMPLATE_PATH,
             static_path=settings.STATIC_PATH,
             cookie_secret=settings.COOKIE_SECRET,
             xsrf_cookies=settings.XSRF_COOKIES,
             debug=settings.DEBUG
-        )     
+        )
+        app_settings.update(kwargs)     
         super(App, self).__init__(handlers=self.load_urls(), **app_settings)     
         
         #session register
@@ -64,7 +65,7 @@ class _BaseServer(object):
     
     __metaclass__ = ABCMeta   
 
-    def __init__(self, process_num=0, init_method=None):
+    def __init__(self, process_num=0, init_method=None, **kwargs):
         '''
         @param process_num: 启动进程数
         @param init_method: init method
@@ -78,6 +79,8 @@ class _BaseServer(object):
                         
         self.__process_num = process_num
         self.__init_method = init_method  
+        
+        self.kwargs = kwargs
     
     @abstractmethod    
     def start(self):
@@ -114,7 +117,7 @@ class HttpServer(_BaseServer):
         '''
         start server
         '''
-        application = App()
+        application = App(**self.kwargs)
         server = HTTPServer(application)  
         if settings.MULTI_PROCESS:
             server.bind(options.port)
@@ -165,7 +168,7 @@ class TcpServer(_BaseServer):
         '''
         start server
         '''
-        server = _TCPServer()
+        server = _TCPServer(**self.kwargs)
         if settings.MULTI_PROCESS:
             server.bind(options.port)
             server.start(self.__process_num)
