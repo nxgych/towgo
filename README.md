@@ -67,13 +67,13 @@ AsyncHttpHandler/AsyncHandler 类是一个异步请求的基类，继承于Reque
 	    def _post(self):
 	    	self.write('success')
 	    	
-TcpHandler 用于处理tcp请求的基类。需要重写 process 方法</br>	 
+TcpHandler 用于处理tcp请求的基类， 需要重写 process 方法。</br>	 
  
 	from torgo.handler import TcpHandler
 	
 	class TestHandler(TcpHandler):  
 	    def process(self):
-	    	self.write('success')  	
+	    	return 'success' 	
 	    	
 ### 5、log模块</br>
 该模块可以用于多进程环境下的日志处理。</br>	    	
