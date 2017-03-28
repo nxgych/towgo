@@ -77,8 +77,8 @@ class _BaseServer(object):
             if not hasattr(init_method,'__call__'):
                 raise FunctionException("'%s' is not a function" % init_method)
                         
-        self.__process_num = process_num
-        self.__init_method = init_method  
+        self._process_num = process_num
+        self._init_method = init_method  
         
         self.kwargs = kwargs
     
@@ -87,15 +87,15 @@ class _BaseServer(object):
         raise NotImplementedError    
         
     def intialize(self):
-        if self.__init_method is not None:
-            self.__init_method()       
+        if self._init_method is not None:
+            self._init_method()       
 
     def setProcessNum(self, num=0):
         '''
         set process num
         '''
         if num >= 0 and num <= cpu_count():
-            self.__process_num = num
+            self._process_num = num
                   
     def setInitMethod(self, method):
         '''
@@ -103,7 +103,7 @@ class _BaseServer(object):
         '''
         if not hasattr(method,'__call__'):
             raise FunctionException("'%s' is not a function" % method)
-        self.__init_method = method
+        self._init_method = method
             
 class HttpServer(_BaseServer):
     """
@@ -121,7 +121,7 @@ class HttpServer(_BaseServer):
         server = HTTPServer(application)  
         if settings.MULTI_PROCESS:
             server.bind(options.port)
-            server.start(self.__process_num)
+            server.start(self._process_num)
         else:
             server.listen(options.port)  
         
@@ -171,10 +171,10 @@ class TcpServer(_BaseServer):
         server = _TCPServer(**self.kwargs)
         if settings.MULTI_PROCESS:
             server.bind(options.port)
-            server.start(self.__process_num)
+            server.start(self._process_num)
             for advanced_port in settings.ADVANCED_SERVER_PORT:
                 # bind more port if set
-                tornado.process.fork_processes(self.__process_num)
+                tornado.process.fork_processes(self._process_num)
                 sockets = bind_sockets(advanced_port)
                 server.add_sockets(sockets)
         else:
