@@ -23,8 +23,6 @@ from .msetting import settings
 from .session.manager import SessionManager
 from .connection import Connection
 
-__all__ = ['HttpServer','TcpServer']
-
 class FunctionException(Exception):
     pass
 
@@ -61,74 +59,7 @@ class App(Application):
             urls.extend(m.urls)
         return urls  
 
-class _BaseServer(object): 
-    
-    __metaclass__ = ABCMeta   
-
-    def __init__(self, process_num=0, init_method=None, **kwargs):
-        '''
-        @param process_num: 启动进程数
-        @param init_method: init method
-        '''
-        #设置环境变量
-        os.environ.setdefault(settings._SETTINGS_MODULE_ENVIRON, options.settings) 
-
-        if init_method is not None:
-            if not hasattr(init_method,'__call__'):
-                raise FunctionException("'%s' is not a function" % init_method)
-                        
-        self._process_num = process_num
-        self._init_method = init_method  
-        
-        self.kwargs = kwargs
-    
-    @abstractmethod    
-    def start(self):
-        raise NotImplementedError    
-        
-    def intialize(self):
-        if self._init_method is not None:
-            self._init_method()       
-
-    def setProcessNum(self, num=0):
-        '''
-        set process num
-        '''
-        if num >= 0 and num <= cpu_count():
-            self._process_num = num
-                  
-    def setInitMethod(self, method):
-        '''
-        set init method
-        '''
-        if not hasattr(method,'__call__'):
-            raise FunctionException("'%s' is not a function" % method)
-        self._init_method = method
-            
-class HttpServer(_BaseServer):
-    """
-    @example:
-        server = HttpServer()
-        server.setInitMethod(func)
-        server.start()     
-    """
-    
-    def start(self):
-        '''
-        start server
-        '''
-        application = App(**self.kwargs)
-        server = HTTPServer(application)  
-        if settings.MULTI_PROCESS:
-            server.bind(options.port)
-            server.start(self._process_num)
-        else:
-            server.listen(options.port)  
-        
-        self.intialize()
-        IOLoop.instance().start()  
-
-class _TCPServer(TCPServer):
+class TTCPServer(TCPServer):
     '''
     base type of TCPServer that override handle_stream method here
     in order to maintain the connection between servers
@@ -154,9 +85,75 @@ class _TCPServer(TCPServer):
             m = __import__("%s.urls" % a, globals={}, locals={}, fromlist=['urls'])
             for cmdId, handler in m.urls:
                 mappings[cmdId] = handler
-        return mappings           
+        return mappings      
+    
+class BaseServer(object): 
+    
+    __metaclass__ = ABCMeta   
 
-class TcpServer(_BaseServer):    
+    def __init__(self, process_num=0, init_method=None, **kwargs):
+        '''
+        @param process_num: 启动进程数
+        @param init_method: init method
+        '''
+        #设置环境变量
+        os.environ.setdefault(settings._SETTINGS_MODULE_ENVIRON, options.settings) 
+
+        if init_method is not None:
+            if not hasattr(init_method,'__call__'):
+                raise FunctionException("'%s' is not a function" % init_method)
+                        
+        self.process_num = process_num
+        self.init_method = init_method  
+        self.kwargs = kwargs
+    
+    @abstractmethod    
+    def start(self):
+        raise NotImplementedError    
+        
+    def intialize(self):
+        if self.init_method is not None:
+            self.init_method()       
+
+    def setProcessNum(self, num=0):
+        '''
+        set process num
+        '''
+        if num >= 0 and num <= cpu_count():
+            self.process_num = num
+                  
+    def setInitMethod(self, method):
+        '''
+        set init method
+        '''
+        if not hasattr(method,'__call__'):
+            raise FunctionException("'%s' is not a function" % method)
+        self.init_method = method
+            
+class HttpServer(BaseServer):
+    """
+    @example:
+        server = HttpServer()
+        server.setInitMethod(func)
+        server.start()     
+    """
+    
+    def start(self):
+        '''
+        start server
+        '''
+        application = App(**self.kwargs)
+        server = HTTPServer(application)  
+        if settings.MULTI_PROCESS:
+            server.bind(options.port)
+            server.start(self.process_num)
+        else:
+            server.listen(options.port)  
+        
+        self.intialize()
+        IOLoop.instance().start()       
+
+class TcpServer(BaseServer):    
     """
     @example:
         server = TcpServer()
@@ -168,13 +165,13 @@ class TcpServer(_BaseServer):
         '''
         start server
         '''
-        server = _TCPServer(**self.kwargs)
+        server = TTCPServer(**self.kwargs)
         if settings.MULTI_PROCESS:
             server.bind(options.port)
-            server.start(self._process_num)
+            server.start(self.process_num)
             for advanced_port in settings.ADVANCED_SERVER_PORT:
                 # bind more port if set
-                tornado.process.fork_processes(self._process_num)
+                tornado.process.fork_processes(self.process_num)
                 sockets = bind_sockets(advanced_port)
                 server.add_sockets(sockets)
         else:

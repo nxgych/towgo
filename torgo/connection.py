@@ -85,7 +85,7 @@ class Connection(object):
     
     @run_on_executor    
     def get_response(self, instance):  
-        return instance.process()    
+        return instance.execute()    
 
     def on_close(self):
         logger.info("Server connection has been closed: %s" % self._address)

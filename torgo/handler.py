@@ -7,7 +7,6 @@ Created on 2017年1月4日
 
 from __future__ import absolute_import
 
-import json
 import time
 from abc import ABCMeta,abstractmethod
 
@@ -22,12 +21,13 @@ from tornado.web import HTTPError
 
 from .msetting import settings
 from .session.manager import Session
+from .utils import TorgoException
 
-class AsyncHandler(RequestHandler):
+class AsyncHttpHandler(RequestHandler):
     '''
     async base http handler
     @example:
-        class TestHandler(AsyncHandler):  
+        class TestHandler(AsyncHttpHandler):  
             def _post(self):
                 pass    
     '''
@@ -37,7 +37,7 @@ class AsyncHandler(RequestHandler):
     executor = ThreadPoolExecutor(settings.ASYNC_THREAD_POOL)
 
     def __init__(self, *args, **kwargs):
-        super(AsyncHandler, self).__init__(*args, **kwargs)
+        super(AsyncHttpHandler, self).__init__(*args, **kwargs)
         #set session
         if settings.SESSION.get('open',False):
             self.session = Session(self.application.session_manager, self)
@@ -77,7 +77,7 @@ class AsyncHandler(RequestHandler):
         raise HTTPError(405)
                    
     def prepare(self):
-        super(AsyncHandler, self).prepare()    
+        super(AsyncHttpHandler, self).prepare()    
 
     def get_session(self, key=None):
         '''
@@ -105,13 +105,39 @@ class AsyncHandler(RequestHandler):
             body = self.request.body
             return escape.json_decode(body) if body else {}
         except:
-            raise Exception("params error")
-        
-class AsyncHttpHandler(AsyncHandler):
-    """
-    async base http handler
-    """      
+            raise TorgoException("Params error!")    
 
+class Request(object):
+    
+    def __init__(self, address=None, body=None):
+        """
+        TCP request
+        @param body: request data as a JSON string
+            {
+                "cmdId" : 1,  #required
+                "timestamp" : 1231312131231,  #option,  ms
+                "params" : { } #option 
+            }    
+        """
+        self.address = address
+        try:
+            self.body = escape.json_decode(body) if body is not None else {}
+        except:
+            raise TorgoException("Illegal JSON string!")    
+        
+        self.cmdId = self.body.get('cmdId')
+        if self.cmdId is None:
+            raise TorgoException("Unknown cmdId!")
+        
+        self.timestamp = int(self.body.get('timestamp', time.time()*1000))
+        self.params = self.body.get('params',{})
+        
+    def __repr__(self):
+        return "address : %s, body : %s" % (self.address, self.body) 
+
+    def as_json(self):
+        return escape.json_encode({'address':self.address, 'body':self.body})
+    
 class TcpHandler(object):
     
     __metaclass__ = ABCMeta
@@ -125,26 +151,19 @@ class TcpHandler(object):
         else:
             raise TypeError 
 
+    def prepare(self):
+        pass
+
     @abstractmethod
     def process(self):
         '''
         This method needs to be overridden.
         '''
         raise NotImplementedError     
-
-class Request(object):
     
-    def __init__(self, address=None, body=None):
-        """
-        TCP request
-        """
-        self.address = address
-        self.body = json.loads(body) if body is not None else {}
-        
-        self.cmdId = self.body.get('cmdId')
-        self.timestamp = int(self.body.get('timestamp', time.time()*1000))
-        self.params = self.body.get('params',{})
-
-    def as_json(self):
-        return json.dumps({'address':self.address, 'body':self.body})
+    def execute(self):
+        result = self.prepare()
+        if result is not None:
+            return result
+        return self.process()
         

@@ -58,7 +58,7 @@ python setup.py install
 	 ]	
 
 ### 4、Handler 类</br>
-AsyncHttpHandler/AsyncHandler 类是一个异步请求的基类，继承于RequestHandler， 用来处理http请求。</br>
+AsyncHttpHandler 类是一个异步请求的基类，继承于RequestHandler， 用来处理http请求。</br>
 如果你需要使用异步非阻塞的请求处理特性，你的handler可以继承该类，post请求需要重写 _post 方法，get请求需要重写 _get 方法。</br>
 
 	from torgo.handler import AsyncHttpHandler
