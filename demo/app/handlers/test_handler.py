@@ -6,11 +6,11 @@ Created on 2017年1月18日
 '''
 
 import traceback
-from torgo.handler import AsyncHandler
+from torgo.handler import AsyncHttpHandler
 
 from torgo.log.log_util import CommonLog
 
-class TestHandler(AsyncHandler):    
+class TestHandler(AsyncHttpHandler):    
     """
     test
     overwrite '_post' or '_get'
