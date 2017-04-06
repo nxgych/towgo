@@ -34,7 +34,6 @@ class Connection(object):
         
     #handler mappings
     handler_mappings = {}
-
     #clients record
     clients = {}
 
@@ -47,18 +46,21 @@ class Connection(object):
         
         self._stream.set_close_callback(self.on_close)
         self.read_request()
-        
-        logger.info("New Connection from server: %s" % address)
+
+        logger.info("Connection created: %s" % str(address))
 
     def read_request(self):
         try:
-            self._stream.read_until('\n', self.handle_request)
+            # delimiter : \0
+            self._stream.read_until("\0", self.handle_request)
         except StreamClosedError,e:
             raise e
 
     def write(self, message):
         try:
             self._stream.write(message)
+        except StreamClosedError, e:
+            logger.warn("Stream closed!")    
         except Exception, e:
             raise e
         
@@ -88,6 +90,6 @@ class Connection(object):
         return instance.execute()    
 
     def on_close(self):
-        logger.info("Server connection has been closed: %s" % self._address)
+        logger.info("Connection closed: %s" % str(self._address))
         Connection.clients.pop(self._address)
         

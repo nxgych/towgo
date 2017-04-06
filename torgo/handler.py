@@ -112,12 +112,12 @@ class Request(object):
     def __init__(self, address=None, body=None):
         """
         TCP request
-        @param body: request data as a JSON string
+        @param body: request data as a JSON string and end with '\0'
             {
                 "cmdId" : 1,  #required
                 "timestamp" : 1231312131231,  #option,  ms
                 "params" : { } #option 
-            }    
+            }\0    
         """
         self.address = address
         try:

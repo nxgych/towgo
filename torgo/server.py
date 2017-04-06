@@ -158,7 +158,24 @@ class TcpServer(BaseServer):
     @example:
         server = TcpServer()
         server.setInitMethod(func)
-        server.start()     
+        server.start()   
+        
+    @client:
+        import socket 
+        import json 
+          
+        HOST = '127.0.0.1'    # The remote host  
+        PORT = 7777           # The same port as used by the server  
+        s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)  
+        s.connect((HOST, PORT))  
+        
+        data = json.dumps({"cmdId":1}) + "\0"  # json string end with '\0'
+        s.sendall(data)  
+        
+        result = s.recv()  
+        print 'received:', repr(result)  
+        
+        s.close()       
     """
             
     def start(self):
