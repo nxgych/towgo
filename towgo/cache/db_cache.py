@@ -13,7 +13,7 @@ import redis
 import cPickle as pickle
 
 from .codis import Connection
-from torgo.msetting import settings
+from towgo.msetting import settings
 
 class _Cache(object):
     '''
@@ -78,7 +78,7 @@ class _Cache(object):
 class RedisCache(_Cache):
     """
     @example:
-        from torgo.cache.db_cache import RedisCache      
+        from towgo.cache.db_cache import RedisCache      
         cache = RedisCache()
         cache.set('a',1) 
         cache.conn.sadd('x','a')    
@@ -104,7 +104,7 @@ class RedisCache(_Cache):
 class CodisCache(_Cache):
     """
     @example:
-        from torgo.cache.db_cache import CodisCache      
+        from towgo.cache.db_cache import CodisCache      
         cache = CodisCache()
         cache.set('a',1) 
         cache.conn.sadd('x','a')    

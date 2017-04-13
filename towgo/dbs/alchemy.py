@@ -18,7 +18,7 @@ from sqlalchemy import exc
 from sqlalchemy import event
 from sqlalchemy.pool import Pool
 
-from torgo.msetting import settings
+from towgo.msetting import settings
 
 
 class Connection(object):

@@ -6,11 +6,11 @@ Created on 2017年1月18日
 '''
 
 import traceback
-from torgo.handler import AsyncHttpHandler
+from towgo.handler import TornadoHttpHandler
 
-from torgo.log.log_util import CommonLog
+from towgo.log.log_util import CommonLog
 
-class TestHandler(AsyncHttpHandler):    
+class TestHandler(TornadoHttpHandler):    
     """
     test
     overwrite '_post' or '_get'

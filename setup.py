@@ -21,13 +21,13 @@ def get_install_requires():
             install_requires.append(line)
     return install_requires
 
-setup(name='torgo',  #打包后的包文件名  
+setup(name='towgo',  #打包后的包文件名  
       version='1.0.0',    
-      description="""torgo is a simple web server framework based tornado""",    
+      description="""towgo is a simple web server framework based both tornado and twisted""",    
       long_description=get_file_contents('README.md'),
       author='shuai.chen',    
       author_email='nxgych@163.com',    
-      url='https://github.com/nxgych/torgo',
+      url='https://github.com/nxgych/towgo',
       packages=find_packages(exclude=['demo']),    
       include_package_data=True,
       install_requires=get_install_requires()

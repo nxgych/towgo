@@ -71,7 +71,7 @@ class TPool(object):
     '''
     Custom thread pool for asynchronous tasks
     @example:
-        from torgo.utils.tpool import TPool 
+        from towgo.utils.tpool import TPool 
         tpool = TPool(1,1)  
         tpool.addTask(func,*args)    
     '''

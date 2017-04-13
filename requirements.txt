@@ -1,5 +1,7 @@
 futures
 tornado
+twisted
 requests
+mako
 redis
 kazoo

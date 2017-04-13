@@ -13,7 +13,7 @@ PROJECT_PATH = os.path.dirname(os.path.dirname(__file__))
 _SETTINGS_MODULE_ENVIRON = "TORGO_APP_SETTINGS" #settings环境变量，请勿修改
 
 MULTI_PROCESS = True   #multiple process if true 
-ASYNC_THREAD_POOL = 50   #async thread pool size
+THREAD_POOL_SIZE = 50   #async thread pool size or twisted thread pool size
 ADVANCED_SERVER_PORT = ()
 
 #debug
@@ -25,6 +25,13 @@ STATIC_PATH = os.path.join(PROJECT_PATH,'static')
 #templates path
 TEMPLATE_PATH = os.path.join(PROJECT_PATH,'templates')
 
+#mako templates for twisted
+MAKO = {
+    "directories": [TEMPLATE_PATH], 
+    "filesystem_checks": False,
+    "collection_size": 500        
+}
+
 #xsrf configuration
 XSRF_COOKIES = False
 COOKIE_SECRET = "TORGO_COOKIE_SECRET"
@@ -32,7 +39,7 @@ COOKIE_SECRET = "TORGO_COOKIE_SECRET"
 #session configuration
 SESSION = {
     "open":False, #是否开启session
-    "storage":"torgo.cache.db_cache.RedisCache",
+    "storage":"towgo.cache.db_cache.RedisCache",
     "secret":"TORGO_SESSION_SECRET",
     "timeout": 7*24*3600
 }

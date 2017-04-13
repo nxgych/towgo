@@ -11,7 +11,7 @@ import os
 PROJECT_PATH = os.path.dirname(os.path.dirname(__file__))
 
 MULTI_PROCESS = True
-ASYNC_THREAD_POOL = 50
+THREAD_POOL_SIZE = 50
 
 #debug
 DEBUG = False
@@ -29,7 +29,7 @@ COOKIE_SECRET = "TORGO_COOKIE_SECRET"
 #session configuration
 SESSION = {
     "open":False, #是否开启session           
-    "storage":"torgo.cache.db_cache.RedisCache",
+    "storage":"towgo.cache.db_cache.RedisCache",
     "secret":"TORGO_SESSION_SECRET",
     "timeout": 7*24*3600
 }

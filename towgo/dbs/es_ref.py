@@ -12,7 +12,7 @@ from elasticsearch import Transport
 from elasticsearch.connection import RequestsHttpConnection 
 from elasticsearch.exceptions import NotFoundError
     
-from torgo.msetting import settings                                            
+from towgo.msetting import settings                                            
                                                 
 class Connection(object):
     '''

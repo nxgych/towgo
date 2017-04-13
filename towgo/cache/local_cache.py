@@ -5,8 +5,8 @@ Created on 2017年1月7日
 @author: shuai.chen
 '''
 
-from torgo.utils.decos import singleton
-from torgo.utils.extend import DiffExpireDict
+from towgo.utils.decos import singleton
+from towgo.utils.extend import DiffExpireDict
  
 @singleton
 class LocalCache(object):

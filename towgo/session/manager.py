@@ -11,7 +11,7 @@ import hmac
 import hashlib
 import json
 
-DEFAULT_STORAGE = "torgo.cache.db_cache.RedisCache"
+DEFAULT_STORAGE = "towgo.cache.db_cache.RedisCache"
 DEFAULT_SECRET = "TORGO_SESSION_SECRET"
 DEFAULT_TIMEOUT = 24*3600
 

@@ -21,9 +21,16 @@ if __name__ == "__main__":
     '''    
     tornado.options.parse_command_line()
 
-    from torgo.server import HttpServer
+    #tornado server
+    from towgo.server import TornadoHttpServer
     from demo.app import initialize
-    server = HttpServer()
+    server = TornadoHttpServer()
     server.setInitMethod(initialize)
     
-    server.start()    
+    server.start()
+
+    #mutiprocess twisted server
+#     from demo import mtws
+#     f = mtws.__file__
+#     execfile(f.replace('pyc', 'py'))
+    

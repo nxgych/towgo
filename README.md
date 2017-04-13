@@ -1,7 +1,7 @@
-# torgo
+# towgo
 
 ## Description</br>
-torgo is a simple web server framework based tornado
+towgo is a simple web server framework based both tornado and twisted
 
 ## Installation</br>
 download the realease package and unpack it, access the path and execute the command:</br>
@@ -13,10 +13,10 @@ python setup.py install
 ## Instruction</br>    
 ### 1、Server 类：</br>
 
-    #http server
-    server = HttpServer()
-    #tcp server
-    #server = TcpServer()
+    #tornado http server
+    server = TornadoHttpServer()
+    #tornado tcp server
+    #server = TornadoTcpServer()
     
     #设置服务初始化函数，initialize是一个用于初始化的函数对象,项目的初始化处理可以写在该方法中
     server.setInitMethod(initialize) 
@@ -30,23 +30,22 @@ python setup.py install
 	python main.py --settings=settings.development --port=7777
 	
 （1）、MULTI_PROCESS	 ：设为 True 时表示服务以多进程方式启动，设为 False 时以单进程方式启动；</br>
-（2）、ASYNC_THREAD_POOL ：设定异步处理的线程池大小；</br>
+（2）、THREAD_POOL_SIZE ：设定线程池大小；</br>
 （3）、LOG ：日志配置；</br>
 （4）、APPS ：用于注册你的应用，类型为元组，例如demo中的app包；</br>
 （5）、SESSION ：session设置,注意由于session存放在redis中，开启session时，需要配置 REDIS 或 CODIS 数据库，并保证可正常使用；</br>
- 另外torgo中还内置了REDIS、CODIS、SQLALCHEMY、MYSQL、HBASE等数据库的连接配置和连接模块，你可以根据自己的需要添加配置。
+ 另外towgo中还内置了REDIS、CODIS、SQLALCHEMY、MYSQL、HBASE等数据库的连接配置和连接模块，你可以根据自己的需要添加配置。
 
 ### 3、urls.py</br>
 在你的应用包中必须包含urls.py，在该文件中定义你的请求路由。</br>
 
     #http server
-	 from tornado.web import url
 	 from .handlers import test_handler
 	
 	 urls = [
 	    #test 
 	    # (url , handler)   
-	    url(r'/test', test_handler.TestHandler),
+	    (r'/test', test_handler.TestHandler),
 	 ]
 	
 	 #tcp server
@@ -58,22 +57,26 @@ python setup.py install
 	 ]	
 
 ### 4、Handler 类</br>
-AsyncHttpHandler 类是一个异步请求的基类，继承于RequestHandler， 用来处理http请求。</br>
+TornadoHttpHandler/TwistedHttpHandler 类是一个异步请求的基类，用来处理http请求。</br>
 如果你需要使用异步非阻塞的请求处理特性，你的handler可以继承该类，post请求需要重写 _post 方法，get请求需要重写 _get 方法。</br>
 
-	from torgo.handler import AsyncHttpHandler
+	from torgo.handler import TornadoHttpHandler,TwistedHttpHandler
 	
-	class TestHandler(AsyncHttpHandler):  
+	class TestHandler(TornadoHttpHandler):  
 	    def _post(self):
-	    	self.write('success')
-	    	
+	    	self.write('hello, world!')
+
+	class TestHandler(TwistedHttpHandler):  
+	    def _post(self):
+	    	return 'hello, world!'
+	    		    	
 TcpHandler 用于处理tcp请求的基类， 需要重写 process 方法。</br>	 
  
 	from torgo.handler import TcpHandler
 	
 	class TestHandler(TcpHandler):  
 	    def process(self):
-	    	return 'success' 	
+	    	return 'hello, world!' 	
 	    	
 ### 5、log模块</br>
 该模块可以用于多进程环境下的日志处理。</br>	    	
@@ -92,7 +95,7 @@ TcpHandler 用于处理tcp请求的基类， 需要重写 process 方法。</br>
     log.info('---')	
 
 ### 6、cache模块</br>
-torgo中添加了redis及分布式缓存系统codis连接模块及api模块，可以方便的选择使用；</br>
+towgo中添加了redis及分布式缓存系统codis连接模块及api模块，可以方便的选择使用；</br>
 
 	先定义initialize方法，Server实例需要设置initialize方法；
 	在initialize方法中添加如下代码，用于初始化redis的连接

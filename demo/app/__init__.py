@@ -7,11 +7,11 @@ def initialize():
     '''
     initialize method
     '''   
-    from torgo.log.log_util import CommonLog
+    from towgo.log.log_util import CommonLog
     try:         
-        from torgo.msetting import settings
+        from towgo.msetting import settings
         #init redis
-        from torgo.cache.db_cache import RedisCache
+        from towgo.cache.db_cache import RedisCache
         for cn,configs in settings.REDIS.iteritems():
             RedisCache(cn,**configs)        
     except:

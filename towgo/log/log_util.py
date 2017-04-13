@@ -10,7 +10,7 @@ from __future__ import absolute_import
 import os
 
 from .logger import Logger
-from torgo.msetting import settings
+from towgo.msetting import settings
 
 class InitException(Exception):  
     """
