@@ -12,10 +12,8 @@ hbase orm based happybase
 import happybase
 from abc import ABCMeta
 
-
 class ColumnFamliyExceotion(Exception):  
     pass   
-
 
 class Connection(object):
     '''
@@ -101,10 +99,8 @@ class Connection(object):
         '''
         return self.table.scan()
     
-
 class PrimaryKeyException(Exception):
     pass
-
 
 class Model(object):  
     """
@@ -303,7 +299,6 @@ class Model(object):
         if self.__key:
             cols = [self._getFieldName(c) for c in columns]
             self.__conn.delete(self.__key, cols)
-
 
 class ColumnException(Exception):
     pass
