@@ -107,9 +107,8 @@ class TwistedSite(object):
         apps = settings.APPS
         for a in apps:
             m = __import__("%s.urls" % a, globals={}, locals={}, fromlist=['urls'])
-            for p,h in m.urls:
-                sp = p[1:] if p.startswith('/') else p
-                root.putChild(sp, h())
+            for path, handler in m.urls:
+                root.putChild(path, handler)
         return server.Site(root)
 
 class TwistedServerFactory(ServerFactory):

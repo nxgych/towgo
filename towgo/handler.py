@@ -29,7 +29,7 @@ from mako.lookup import TemplateLookup
 from .session.manager import Session
 from .session.manager import SessionManager
 from .msetting import settings
-from .utils import TorgoException
+from .utils import TowgoException
 
 class TornadoHttpHandler(RequestHandler):
     '''
@@ -121,7 +121,7 @@ class TornadoHttpHandler(RequestHandler):
             body = self.request.body
             return escape.json_decode(body) if body else {}
         except:
-            raise TorgoException("Params error!")    
+            raise TowgoException("Params error!")    
 
 #session configuration
 sc = settings.SESSION 
@@ -158,17 +158,23 @@ class TwistedHttpHandler(Resource):
         '''write result'''
         self.request.write(context)  
         self.request.finish()   
+        
+    def error(self, failure):   
+        self.request.write(failure)  
+        self.request.finish()  
 
-    def render_GET(self,request):
+    def render_GET(self, request):
         self._set_request(request)
         d = threads.deferToThread(self.get)
-        d.addCallback(self.write)          
+        d.addCallback(self.write) 
+        d.addErrback(self.error)         
         return server.NOT_DONE_YET
 
-    def render_POST(self,request):
+    def render_POST(self, request):
         self._set_request(request)
         d = threads.deferToThread(self.post)
-        d.addCallback(self.write)      
+        d.addCallback(self.write)  
+        d.addErrback(self.error)     
         return server.NOT_DONE_YET
     
     def prepare(self):
@@ -191,13 +197,13 @@ class TwistedHttpHandler(Resource):
         '''
         http get method
         '''
-        return NoResource()
+        return "method '_get' : NotImplementedError"
         
     def _post(self):
         '''
         http post method
         '''        
-        return NoResource()
+        return "method '_post' : NotImplementedError"
 
     def getChild(self, path, request):
         return self
@@ -253,7 +259,7 @@ class TwistedHttpHandler(Resource):
             body = self.request.content.read()
             return escape.json_decode(body) if body else {}
         except:
-            raise TorgoException("Illegal JSON string!")  
+            raise TowgoException("Illegal JSON string!")  
 
 class TwistedRootHandler(TwistedHttpHandler):
 
@@ -264,11 +270,12 @@ class TwistedRootHandler(TwistedHttpHandler):
         return self._get()
             
     def getChild(self, path, request):
-        path = request.path[1:]
-        if not path:
+        path = request.path
+        if path == '/':
             return self
         if path in self.children:
-            return self.children.get(path)
+            resource = self.children.get(path)
+            return resource()
         return NoResource()    
             
 class Request(object):
@@ -290,11 +297,11 @@ class Request(object):
             try:
                 self.body = escape.json_decode(body[:-1] if body.endswith('\0') else body) 
             except:
-                raise TorgoException("Illegal JSON string!")    
+                raise TowgoException("Illegal JSON string!")    
                     
         self.cmdId = self.body.get('cmdId')
         if self.cmdId is None:
-            raise TorgoException("Unknown cmdId!")
+            raise TowgoException("Unknown cmdId!")
         
         self.timestamp = int(self.body.get('timestamp', time.time()*1000))
         self.params = self.body.get('params',{})
@@ -345,7 +352,7 @@ class TcpHandler(object):
 
 class Result(object):
     '''
-    common result
+    TCP common result
     '''
     
     def __init__(self, cmdId, message=""):
