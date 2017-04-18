@@ -20,17 +20,17 @@ class TestHandler(TornadoHttpHandler):
             params = self.get_body_params()
             uid = params['uid']
             CommonLog.info("uid:" + uid)
-            self.write("success")
+            return 'hello, world!'
         except:
             CommonLog.error('TestHandler:'+traceback.format_exc())
-            self.write("error")
+            return 'error'
             
     def _get(self):
         try:
             uid = self.get_argument('uid','')
             CommonLog.info("uid:" + uid)
-            self.write("success")
+            return 'hello, world!'
         except:
             CommonLog.error('TestHandler:'+traceback.format_exc())
-            self.write("error")                
+            return 'error'           
         

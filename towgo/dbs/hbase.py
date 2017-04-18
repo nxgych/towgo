@@ -224,28 +224,50 @@ class Model(object):
         object as dict
         '''
         return {k:v for k,v in self.__dict__.iteritems() if k in self._columns} 
-        
+
+    @classmethod
+    def get_conn(cls):
+        assert cls.__table_name__ != ''
+        return Connection(cls.__table_name__, cls.__column_famliy__)
+            
     @classmethod
     def get(cls, key):
         '''
         get one object
         @param key: primary key 
         '''
-        conn = Connection(cls.__table_name__, cls.__column_famliy__)
+        conn = cls.get_conn()
         result = conn.get(key)
         if not result: 
             return None
         return cls._createObject(key, conn, result)   
-    
+        
     @classmethod
     def gets(cls, keys=[]):
         '''
         get several objects
         @return: [(key,object subclass of Model),...]
         '''
-        conn = Connection(cls.__table_name__, cls.__column_famliy__)
+        conn = cls.get_conn()
         return [(k,cls._createObject(k,conn, v)) for k,v in conn.gets(keys)]     
-    
+
+    @classmethod
+    def create(cls, key, **data):
+        ''' create object '''
+        class_dict = cls.__dict__
+        values = {}
+        for k,v in data.iteritems():
+            ck = k
+            cv = class_dict.get(k)
+            if cv is None:
+                continue  
+            if isinstance(cv, Column):
+                ck = cv.field_name
+            values[ck] = v  
+        conn = cls.get_conn()
+        conn.put(key, value=values) 
+        return cls._createObject(key, conn, data)
+        
     @classmethod
     def _createObject(cls, key, conn, result):
         '''
@@ -277,8 +299,8 @@ class Model(object):
         if not self.__key:
             raise PrimaryKeyException("Value of primary key cannot be '%s'" % self.__key)   
                   
-        value = {self._getFieldName(k):str(v) for k,v in kwargs.iteritems() if k in self._columns}
-        self.__conn.put(self.__key, value=value)    
+        values = {self._getFieldName(k):str(v) for k,v in kwargs.iteritems() if k in self._columns}
+        self.__conn.put(self.__key, value=values)    
 
     def save(self):
         '''
@@ -289,8 +311,8 @@ class Model(object):
         if not self.__key:
             raise PrimaryKeyException("Value of primary key cannot be '%s'" % self.__key)  
         
-        kwargs = {self._getFieldName(k):str(v) for k,v in columns.iteritems() if k in self._columns}            
-        self.__conn.put(self.__key, value=kwargs)
+        values = {self._getFieldName(k):str(v) for k,v in columns.iteritems() if k in self._columns}            
+        self.__conn.put(self.__key, value=values)
         
     def delete(self, columns=[]):
         '''

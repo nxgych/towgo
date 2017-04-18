@@ -114,8 +114,7 @@ class Connection(object):
             return ret_json
         except NotFoundError:
             return None 
-        
-        
+             
 class Connection2(object):
     
     _conn = None

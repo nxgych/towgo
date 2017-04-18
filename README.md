@@ -64,7 +64,7 @@ TornadoHttpHandler/TwistedHttpHandler 类是一个异步请求的基类，用来
 	
 	class TestHandler(TornadoHttpHandler):  
 	    def _post(self):
-	    	self.write('hello, world!')
+	    	return 'hello, world!'
 
 	class TestHandler(TwistedHttpHandler):  
 	    def _post(self):

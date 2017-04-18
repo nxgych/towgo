@@ -14,16 +14,22 @@ _SETTINGS_MODULE_ENVIRON = "TOWGO_APP_SETTINGS" #settings环境变量，请勿�
 
 MULTI_PROCESS = True   #multiple process if true 
 THREAD_POOL_SIZE = 50   #async thread pool size or twisted thread pool size
-ADVANCED_SERVER_PORT = ()
-
-#debug
-DEBUG = False
 
 #static path
 STATIC_PATH = os.path.join(PROJECT_PATH,'static')
 
 #templates path
 TEMPLATE_PATH = os.path.join(PROJECT_PATH,'templates')
+
+#tornado advanced port
+ADVANCED_SERVER_PORT = ()
+
+#tornado debug switch
+DEBUG = False
+
+#tornado xsrf configuration
+XSRF_COOKIES = False
+COOKIE_SECRET = "TOWGO_COOKIE_SECRET"
 
 #mako templates for twisted
 MAKO = {
@@ -32,15 +38,11 @@ MAKO = {
     "collection_size": 500        
 }
 
-#xsrf configuration
-XSRF_COOKIES = False
-COOKIE_SECRET = "TORGO_COOKIE_SECRET"
-
 #session configuration
 SESSION = {
     "open":False, #是否开启session
     "storage":"towgo.cache.db_cache.RedisCache",
-    "secret":"TORGO_SESSION_SECRET",
+    "secret":"TOWGO_SESSION_SECRET",
     "timeout": 7*24*3600
 }
 
@@ -79,13 +81,21 @@ CODIS={
        }
 }
 
-#sqlalchemy & mysql configuration
+#SQL pool
+SQL_POOL = {
+            "mincached": 1,
+            "maxcached": 5,
+            "maxconnections": 100,
+            "blocking": True
+}
+#sqlalchemy
 SQLALCHEMY = {
               "echo":False,
               "pool_size":100,
               "pool_recycle":3600,
               "max_overflow":10,
 }
+#mysql configuration
 MYSQL = {         
         "default":{
                  "host":"127.0.0.1",

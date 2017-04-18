@@ -24,6 +24,7 @@ from tornado.httputil import format_timestamp
 from twisted.internet import threads
 from twisted.web import server
 from twisted.web.resource import Resource, NoResource
+from twisted.web.util import redirectTo
 from mako.lookup import TemplateLookup
 
 from .session.manager import Session
@@ -37,7 +38,7 @@ class TornadoHttpHandler(RequestHandler):
     @example:
         class TestHandler(TornadoHttpHandler):  
             def _post(self):
-                self.write('hello, world!')    
+                return 'hello world'   
     '''
     
     __metaclass__ = ABCMeta
@@ -50,26 +51,32 @@ class TornadoHttpHandler(RequestHandler):
         #set session
         if self.application.session_manager is not None:
             self.session = Session(self.application.session_manager, self)
+        else:
+            self.session = None    
     
     @asynchronous
     @gen.coroutine
     def get(self):
         try:
-            yield self._async_execute_get() 
+            result = yield self._async_execute_get()
+            if result is not None:
+                self.finish(result)
         except:
-            raise 
+            raise
         finally:
-            if not self._finished: self.finish()    
+            if not self._finished: self.finish()            
                   
     @asynchronous
     @gen.coroutine
     def post(self):
         try:
-            yield self._async_execute_post() 
+            result = yield self._async_execute_post()
+            if result is not None:
+                self.finish(result)
         except:
             raise
         finally:
-            if not self._finished: self.finish()    
+            if not self._finished: self.finish()          
              
     @run_on_executor
     def _async_execute_get(self):
@@ -192,7 +199,11 @@ class TwistedHttpHandler(Resource):
         if result is not None:
             return result
         return self._post()
-    
+
+    def redirect(self, url):
+        '''redirect url'''
+        return redirectTo(url, self.request)
+        
     def _get(self):
         '''
         http get method
@@ -208,7 +219,7 @@ class TwistedHttpHandler(Resource):
     def getChild(self, path, request):
         return self
     
-    def render_page(self, template_name, **kwargs):
+    def render_string(self, template_name, **kwargs):
         '''
         @param template_name: template file name
         Renders the mako template with the given arguments as the response
@@ -277,6 +288,35 @@ class TwistedRootHandler(TwistedHttpHandler):
             resource = self.children.get(path)
             return resource()
         return NoResource()    
+    
+class TcpHandler(object):
+    
+    __metaclass__ = ABCMeta
+    
+    def __init__(self,request):
+        """
+        TCP base handler
+        """
+        if isinstance(request, Request):
+            self.request = request
+        else:
+            raise TypeError 
+
+    def prepare(self):
+        pass
+
+    @abstractmethod
+    def process(self):
+        '''
+        This method needs to be overridden.
+        '''
+        raise NotImplementedError     
+    
+    def execute(self):
+        result = self.prepare()
+        if result is not None:
+            return result
+        return self.process()
             
 class Request(object):
     
@@ -321,35 +361,6 @@ class Request(object):
     def get_argument(self, name, default=None):
         return self.params.get(name) or default
     
-class TcpHandler(object):
-    
-    __metaclass__ = ABCMeta
-    
-    def __init__(self,request):
-        """
-        TCP base handler
-        """
-        if isinstance(request, Request):
-            self.request = request
-        else:
-            raise TypeError 
-
-    def prepare(self):
-        pass
-
-    @abstractmethod
-    def process(self):
-        '''
-        This method needs to be overridden.
-        '''
-        raise NotImplementedError     
-    
-    def execute(self):
-        result = self.prepare()
-        if result is not None:
-            return result
-        return self.process()
-
 class Result(object):
     '''
     TCP common result

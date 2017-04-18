@@ -3,5 +3,6 @@ tornado
 twisted
 requests
 mako
+DBUtils
 redis
 kazoo

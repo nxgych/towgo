@@ -20,10 +20,9 @@ from sqlalchemy.pool import Pool
 
 from towgo.msetting import settings
 
-
 class Connection(object):
     '''
-    sqlalchemy connection class
+    sqlalchemy orm connection class for mysql
     '''  
     _engine = {}
       
@@ -50,7 +49,6 @@ class Connection(object):
             return None
         return sessionmaker(bind=self._engine[self._conn_name])
 
-
 @event.listens_for(Pool, "checkout")
 def ping_connection(dbapi_connection, connection_record, connection_proxy):
     cursor = dbapi_connection.cursor()
@@ -62,7 +60,6 @@ def ping_connection(dbapi_connection, connection_record, connection_proxy):
         raise exc.DisconnectionError()
     cursor.close()
         
-
 MetaBaseModel = declarative_base()
 class BaseModel(MetaBaseModel):
     '''
