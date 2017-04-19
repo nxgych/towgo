@@ -283,8 +283,6 @@ class Model(object):
         for k,v in data.iteritems():
             ck = k
             cv = class_dict.get(k)
-            if cv is None:
-                continue  
             if isinstance(cv, Column):
                 ck = cv.field_name
             values[ck] = v  

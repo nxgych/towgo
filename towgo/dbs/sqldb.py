@@ -8,41 +8,35 @@ Created on 2017年4月17日
 import datetime
 import types
 from abc import ABCMeta
+import functools
 
 import MySQLdb  
 from MySQLdb.cursors import DictCursor 
 from DBUtils.PooledDB import PooledDB  
  
-from towgo.utils.extend import Odict 
 from towgo.msetting import settings
 
 class SqlFormat(object):
     
-    @staticmethod        
-    def need_str(value):
-        """
-        check value type
-        """
-        if (type(value) is types.StringType or type(value) is types.UnicodeType
-            or isinstance(value,datetime.date) or isinstance(value,datetime.datetime)):
-            return True
-        return False   
-    
     @staticmethod  
     def get_value(value):
         '''get value'''
-        if isinstance(value, datetime.datetime):
-            return value.strftime("%Y-%m-%d %H:%M:%S")   
-        if isinstance(value, datetime.date):
-            return value.strftime("%Y-%m-%d")    
-        return value     
+        format_string = functools.partial(str.format, "'{0}'")
+        
+        if type(value) is types.StringType or type(value) is types.UnicodeType:
+            return format_string(value)
+        elif isinstance(value, datetime.datetime):
+            return format_string(value.strftime("%Y-%m-%d %H:%M:%S"))
+        elif isinstance(value, datetime.date):
+            return format_string(value.strftime("%Y-%m-%d"))
+        else: 
+            return str(value)
           
     def get_condition_str(self, key, value, sign="="):
         """
         condition string
         """
-        sstr = "{0} {1} '{2}'" if self.need_str(value) else "{0} {1} {2}"
-        return str.format(sstr, key, sign, self.get_value(value))
+        return str.format("{0} {1} {2}", key, sign, self.get_value(value))
     
     def get_condition(self, condition, sign=" and "):
         """
@@ -98,22 +92,19 @@ class SqlConn(SqlFormat):
         @param condition: dict type
         @param as_dict: return dict type if True   
         '''
+        assert len(condition) > 0
         cursor = self.conn.cursor()
         try:
-            assert len(condition) > 0
             fc = self.get_condition(condition)
             sql = "SELECT * FROM %s WHERE %s" % (self.table, fc)
             cursor.execute(sql)
-            if as_dict:
-                obj = cursor.fetchoneDict()
-                return Odict(obj) if obj else None
-            return cursor.fetchone()
+            return cursor.fetchoneDict() if as_dict else cursor.fetchone()
         except:
             raise
         finally:    
             cursor.close()       
     
-    def getmany(self, condition={}, limit=0, as_dict=False):
+    def getmany(self, condition={}, start=0, limit=0, as_dict=False):
         '''
         get many from db with conditions
         @param condition: dict type
@@ -127,9 +118,9 @@ class SqlConn(SqlFormat):
             else:
                 sql = "SELECT * FROM %s" % self.table
                   
-            sql += " LIMIT %d" % limit if limit > 0 else ''
+            sql += " LIMIT %d,%d" % (start, limit) if limit > 0 else ''
             cursor.execute(sql)
-            return [Odict(item) for item in cursor.fetchallDict()] if as_dict else cursor.fetchall()
+            return cursor.fetchallDict() if as_dict else cursor.fetchall()
         except:
             raise
         finally:    
@@ -142,7 +133,7 @@ class SqlConn(SqlFormat):
         cursor = self.conn.cursor()
         try:
             cursor.execute(sql)
-            return [Odict(item) for item in cursor.fetchallDict()] if as_dict else cursor.fetchall()
+            return cursor.fetchallDict() if as_dict else cursor.fetchall()
         except:
             raise
         finally:    
@@ -151,13 +142,13 @@ class SqlConn(SqlFormat):
     def update(self, data, condition):
         '''
         update
-        @param data: dict type
-        @param condition: dict type
-        '''            
+        @param data: updated data, dict type
+        @param condition: query condition, dict type
+        '''    
+        assert len(data) > 0
+        assert len(condition) > 0                
         cursor = self.conn.cursor()
         try:
-            assert len(data) > 0
-            assert len(condition) > 0
             fc = self.get_condition(condition)
             fvalues = self.get_condition(data, ",")
             sql = "UPDATE %s SET %s WHERE %s" % (self.table, fvalues, fc)  
@@ -173,20 +164,17 @@ class SqlConn(SqlFormat):
         '''
         insert
         @param data: dict type
-        '''         
+        '''      
+        assert len(data) > 0   
         cursor = self.conn.cursor()
         try:
-            assert len(data) > 0
             ks, vs = [], []
             for k,v in data.iteritems():
-                sstr = "'{0}'" if self.need_str(v) else "{0}"
-                vs.append(str.format(sstr, self.get_value(v)))
+                vs.append(self.get_value(v))
                 ks.append(k)
                 
-            k_format = ",".join(ks)    
-            v_format = ",".join(vs)              
-            
-            sql = "INSERT INTO %s (%s) VALUES (%s)" % (self.table, k_format, v_format)
+            kf, vf = ",".join(ks), ",".join(vs)             
+            sql = "INSERT INTO %s (%s) VALUES (%s)" % (self.table, kf, vf)
             cursor.execute(sql)
             self.conn.commit()    
         except:
@@ -197,6 +185,7 @@ class SqlConn(SqlFormat):
             
     def delete(self, condition): 
         ''' delete data '''
+        assert len(condition) > 0
         cursor = self.conn.cursor()
         try:
             fc = self.get_condition(condition)
@@ -218,7 +207,8 @@ class SqlConn(SqlFormat):
             for sql in args:
                 cursor.execute(sql)
 
-            self.conn.commit()    
+            self.conn.commit()   
+            return cursor.rowcount()  
         except:
             self.conn.rollback()
             raise
@@ -229,13 +219,14 @@ class SqlConn(SqlFormat):
         '''
         @summary: execute many record
         @param sql: sql format 
-        @param values:type tuple(tuple)/list[list] 
+        @param values: type tuple(tuple)/list[list] 
         @return: execute lines number  
         '''          
         cursor = self.conn.cursor()
         try:
             cursor.executemany(sql, values)
-            self.conn.commit()    
+            self.conn.commit()  
+            return cursor.rowcount()  
         except:
             self.conn.rollback()
             raise
@@ -305,8 +296,6 @@ class Model(object):
         for k, v in data.iteritems():
             ck = k
             cv = class_dict.get(k)
-            if cv is None:
-                continue
             if isinstance(cv, Column):
                 ck = cv.field_name
             attr[ck] = v
@@ -314,7 +303,12 @@ class Model(object):
 
     @classmethod    
     def get(cls, **condition): 
-        ''' get one ''' 
+        ''' 
+        get one query
+        @param condition: query condition
+        @example:
+            {'id':1}
+        ''' 
         conn = cls.get_conn()
         cond = cls._get_db_data(condition)
         obj = conn.get(cond, as_dict=True)  
@@ -323,11 +317,19 @@ class Model(object):
         return cls._create_object(conn, obj)
 
     @classmethod
-    def getmany(cls, condition={}, limit=0):
-        ''' get many '''
+    def getmany(cls, start=0, limit=0, **condition):
+        ''' 
+        get many queries
+        @param start: start item index
+        @param limit: limit item number
+        @param condition: query condition
+        @example:
+            {'level': ('>', 3), 'age': 18}        
+        '''
         conn = cls.get_conn()
         cond = cls._get_db_data(condition)
-        return [cls._create_object(conn, v) for v in conn.getmany(cond, limit=limit, as_dict=True)]   
+        co = functools.partial(cls._create_object, conn)
+        return map(co, conn.getmany(cond, start=start, limit=limit, as_dict=True))
 
     @classmethod
     def create(cls, **data):
