@@ -24,30 +24,44 @@ class Connection(object):
     
     if you wanna to use more method of happybase, you can init this class directly without Model
     @example:
-        conn = Connection('table')
+        conn = Connection(table='table')
         conn.table.method()
     '''
     
-    _conn = None
+    _conn = {}
     
-    def __init__(self, table, cf='cf:'):
+    def __new__(cls, conn_name="default", table="", cf='cf:', *args, **kwargs):
+        if conn_name not in cls._conn:
+            cls.connect(conn_name, **kwargs)
+        return object.__new__(cls, *args, **kwargs)
+    
+    def __init__(self, conn_name="default", table="", cf='cf:', *args, **kwargs):
         '''
         @param table: hbase table name 
         @param cf: hbase table column famliy, default is 'cf:'  
         '''
+        assert table != ""
+        self.conn_name = conn_name
         self.cf = self._getColumnFamliyDefault(cf)
-        self.table = self._conn.table(table)       
+        self.table = self.getConn().table(table)  
+             
         self._createTable(table)
         
     @classmethod
-    def connect(cls, **kwargs):
+    def connect(cls, conn_name="default", **kwargs):
         '''
         happybase connect, you must execute this method before you create a instance of 'Connection'
         
         @example:
             Connection.connect(host='127.0.0.1',port=9090)
         '''
-        cls._conn = happybase.Connection(**kwargs)
+        cls._conn[conn_name] = happybase.Connection(**kwargs)
+        
+    def getConn(self):
+        ''' 
+        get connection 
+        '''      
+        return self._conn[self.conn_name]    
         
     def _getColumnFamliyDefault(self, cf):
         '''
@@ -61,8 +75,8 @@ class Connection(object):
         '''
         create table if the table is not exist
         '''
-        if table not in self._conn.client.getTableNames():
-            self._conn.create_table(table,{self.cf: dict()})
+        if table not in self.getConn().client.getTableNames():
+            self.getConn().create_table(table,{self.cf: dict()})
    
     def get(self, key):
         '''
@@ -142,6 +156,11 @@ class Model(object):
     __metaclass__ = ABCMeta
     
     '''
+    hbase connection name, defalut is 'default' connection 
+    '''
+    __connection_name__ = 'default'
+        
+    '''
     table name, you must define this variable in your model
     '''   
     __table_name__ = ''  
@@ -176,24 +195,34 @@ class Model(object):
         '''
         @param conn: happybase Connection 
         '''
-        self.__conn = conn or Connection(self.__table_name__, self.__column_famliy__)
-        self.__cf = self.__conn.cf
-        self.__key = '' 
+        assert self.__table_name__ != ''
+        self._conn = conn or Connection(self.__connection_name__, self.__table_name__, self.__column_famliy__)
+        self._cf = self._conn.cf
+        self._key = '' 
 
+    @property    
+    def conn(self):
+        return self._conn   
+    
+    @classmethod
+    def getConn(cls):
+        assert cls.__table_name__ != ''
+        return Connection(cls.__connection_name__, cls.__table_name__, cls.__column_famliy__)
+    
     def _getFieldName(self, fname):
         '''
         get field name
         '''
         field_name = self._columns.get(fname, fname)
         if ':' not in field_name:
-            return '%s%s' % (self.__cf,field_name)
+            return '%s%s' % (self._cf,field_name)
         return field_name
         
     def _setKeyByPrimaryKey(self, kwargs):  
         '''
         set primary key
         ''' 
-        if not self.__key:
+        if not self._key:
             primary_key_values = []
             for k in self._primary_keys:
                 v = kwargs.get(k)
@@ -202,7 +231,7 @@ class Model(object):
                 primary_key_values.append(v)
 
             if len(primary_key_values) > 0:
-                self.__key = self.__primary_key_delimiter__.join(map(str,primary_key_values))    
+                self._key = self.__primary_key_delimiter__.join(map(str,primary_key_values))    
  
     def setKey(self, key): 
         '''
@@ -211,24 +240,19 @@ class Model(object):
         '''
         if not key or not isinstance(key,str):  
             raise PrimaryKeyException("Value of primary key must be a string type and not null")   
-        self.__key = key   
+        self._key = key   
             
     def getKey(self):
         '''
         get primary key
         '''
-        return self.__key             
+        return self._key             
 
     def as_dict(self):
         '''
         object as dict
         '''
         return {k:v for k,v in self.__dict__.iteritems() if k in self._columns} 
-
-    @classmethod
-    def get_conn(cls):
-        assert cls.__table_name__ != ''
-        return Connection(cls.__table_name__, cls.__column_famliy__)
             
     @classmethod
     def get(cls, key):
@@ -236,7 +260,7 @@ class Model(object):
         get one object
         @param key: primary key 
         '''
-        conn = cls.get_conn()
+        conn = cls.getConn()
         result = conn.get(key)
         if not result: 
             return None
@@ -248,7 +272,7 @@ class Model(object):
         get several objects
         @return: [(key,object subclass of Model),...]
         '''
-        conn = cls.get_conn()
+        conn = cls.getConn()
         return [(k,cls._createObject(k,conn, v)) for k,v in conn.gets(keys)]     
 
     @classmethod
@@ -264,7 +288,7 @@ class Model(object):
             if isinstance(cv, Column):
                 ck = cv.field_name
             values[ck] = v  
-        conn = cls.get_conn()
+        conn = cls.getConn()
         conn.put(key, value=values) 
         return cls._createObject(key, conn, data)
         
@@ -296,11 +320,11 @@ class Model(object):
         update columns value with dict
         ''' 
         self._setKeyByPrimaryKey({k:kwargs.get(k) for k in self._primary_keys})  
-        if not self.__key:
-            raise PrimaryKeyException("Value of primary key cannot be '%s'" % self.__key)   
+        if not self._key:
+            raise PrimaryKeyException("Value of primary key cannot be '%s'" % self._key)   
                   
         values = {self._getFieldName(k):str(v) for k,v in kwargs.iteritems() if k in self._columns}
-        self.__conn.put(self.__key, value=values)    
+        self._conn.put(self._key, value=values)    
 
     def save(self):
         '''
@@ -308,19 +332,19 @@ class Model(object):
         '''
         columns = self.__dict__
         self._setKeyByPrimaryKey({k:columns.get(k) for k in self._primary_keys})
-        if not self.__key:
-            raise PrimaryKeyException("Value of primary key cannot be '%s'" % self.__key)  
+        if not self._key:
+            raise PrimaryKeyException("Value of primary key cannot be '%s'" % self._key)  
         
         values = {self._getFieldName(k):str(v) for k,v in columns.iteritems() if k in self._columns}            
-        self.__conn.put(self.__key, value=values)
+        self._conn.put(self._key, value=values)
         
     def delete(self, columns=[]):
         '''
         delete object or columns
         '''
-        if self.__key:
+        if self._key:
             cols = [self._getFieldName(c) for c in columns]
-            self.__conn.delete(self.__key, cols)
+            self._conn.delete(self._key, cols)
 
 class ColumnException(Exception):
     pass

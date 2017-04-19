@@ -65,7 +65,7 @@ class SqlConn(SqlFormat):
     
     def __new__(cls, conn_name='default', *args, **kwargs):
         if conn_name not in cls._conn:
-            cls._conn[conn_name] = cls.connect(conn_name, **kwargs)
+            cls.connect(conn_name, **kwargs)
         return object.__new__(cls, *args, **kwargs)
 
     def __init__(self,conn_name='default', *args, **kwargs):
@@ -79,15 +79,15 @@ class SqlConn(SqlFormat):
         except:
             pass    
                     
-    @staticmethod
-    def connect(conn_name, **kwargs):
+    @classmethod
+    def connect(cls, conn_name, **kwargs):
         config = kwargs or settings.MYSQL[conn_name]
         pool = PooledDB(creator=MySQLdb, 
                         host=config['host'], port=config['port'], db=config['database'],
                         user=config['username'], passwd=config['password'],
                         use_unicode=False, charset="utf8", cursorclass=DictCursor,
                         **settings.SQL_POOL)  
-        return pool
+        cls._conn[conn_name] = pool
     
     def set_table(self, table):
         self.table = table
@@ -111,7 +111,7 @@ class SqlConn(SqlFormat):
         except:
             raise
         finally:    
-            cursor.close       
+            cursor.close()       
     
     def getmany(self, condition={}, limit=0, as_dict=False):
         '''
@@ -133,7 +133,7 @@ class SqlConn(SqlFormat):
         except:
             raise
         finally:    
-            cursor.close
+            cursor.close()
 
     def get_by_sql(self, sql, as_dict=False):
         '''
@@ -146,7 +146,7 @@ class SqlConn(SqlFormat):
         except:
             raise
         finally:    
-            cursor.close   
+            cursor.close() 
                 
     def update(self, data, condition):
         '''
@@ -167,7 +167,7 @@ class SqlConn(SqlFormat):
             self.conn.rollback()
             raise
         finally:    
-            cursor.close
+            cursor.close()
     
     def insert(self, data):
         '''
@@ -207,7 +207,7 @@ class SqlConn(SqlFormat):
             self.conn.rollback()
             raise
         finally:    
-            cursor.close                 
+            cursor.close()                 
     
     def execute(self, *args):
         '''
@@ -246,6 +246,11 @@ class Column(object):
     ''' mysql column '''
 
     def __init__(self, field_name, primary_key=False, default=None):  
+        '''
+        @param field_name: field name
+        @param primary_key: is primary key or not
+        @param default: default value 
+        '''
         self.field_name = field_name
         self.primary_key = primary_key
         self.default = default
@@ -254,7 +259,7 @@ class Model(object):
     
     __metaclass__ = ABCMeta
     
-    '''mysql connection name, defalut is 'default' connection '''
+    '''mysql connection name, defalut is 'default' '''
     __connection_name__ = 'default'
     
     '''mysql table name, you must define this variable in your model'''

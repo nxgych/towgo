@@ -28,21 +28,18 @@ class Connection(object):
       
     def __new__(cls, conn_name='default', *args, **kwargs):
         if conn_name not in cls._engine:
-            cls._engine[conn_name] = cls.connect(conn_name, **kwargs)
+            cls.connect(conn_name, **kwargs)
         return super(Connection, cls).__new__(cls)
       
     def __init__(self,conn_name='default', *args, **kwargs):
         self._conn_name = conn_name
         
-    @staticmethod
-    def connect(conn_name, **kwargs):
-        try:
-            configs = kwargs or settings.MYSQL[conn_name]
-            conn_url = URL('mysql+mysqldb',**configs)
-            alchemy_args = settings.SQLALCHEMY
-            return create_engine(conn_url, poolclass=QueuePool,**alchemy_args)
-        except:
-            raise
+    @classmethod
+    def connect(cls, conn_name, **kwargs):
+        configs = kwargs or settings.MYSQL[conn_name]
+        conn_url = URL('mysql+mysqldb',**configs)
+        alchemy_args = settings.SQLALCHEMY
+        cls._engine[conn_name] = create_engine(conn_url, poolclass=QueuePool,**alchemy_args)
                
     def get_session(self):
         if self._conn_name not in self._engine:

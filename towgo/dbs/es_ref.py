@@ -22,24 +22,21 @@ class Connection(object):
     
     def __new__(cls, *args, **kwargs):
         if cls._pool is None:
-            cls._pool = cls.connect(**kwargs)
+            cls.connect(**kwargs)
         return object.__new__(cls)
     
-    @staticmethod
-    def connect(**kwargs):
+    @classmethod
+    def connect(cls, **kwargs):
         config = kwargs or settings.ES
-        try:
-            conn = Transport(
-                             config['nodes'], 
-                             connection_class=RequestsHttpConnection,
-                             sniff_on_start=True,
-                             sniff_on_connection_fail=True,
-                             retry_on_timeout=True,
-                             **config
-                            )
-            return conn.connection_pool
-        except:
-            raise
+        conn = Transport(
+                         config['nodes'], 
+                         connection_class=RequestsHttpConnection,
+                         sniff_on_start=True,
+                         sniff_on_connection_fail=True,
+                         retry_on_timeout=True,
+                         **config
+                        )
+        cls._pool = conn.connection_pool
               
     def get_conn(self):
         return self._pool.get_connection()
@@ -121,20 +118,17 @@ class Connection2(object):
      
     def __new__(cls, *args, **kwargs):
         if cls._conn is None:
-            cls._conn = cls.connect(**kwargs)
+            cls.connect(**kwargs)
         return object.__new__(cls)
         
-    @staticmethod
-    def connect(**kwargs):
+    @classmethod
+    def connect(cls, **kwargs):
         config = kwargs or settings.ES
-        try:
-            hp_list = []
-            for hp in config['nodes']:
-                hp_list.append("%s:%d" % (hp['host'], hp['port']))
-                
-            return Elasticsearch(hp_list, **config)    
-        except:
-            raise
+        hp_list = []
+        for hp in config['nodes']:
+            hp_list.append("%s:%d" % (hp['host'], hp['port']))
+            
+        cls._conn = Elasticsearch(hp_list, **config)    
 
     def create_index(self, index_name, doc_type='',mappings={}):
         """

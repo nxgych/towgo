@@ -87,19 +87,16 @@ class RedisCache(_Cache):
 
     def __new__(cls, conn_name='default', *args, **kwargs):
         if conn_name not in cls._pools:
-            cls._pools[conn_name] = cls.connect(conn_name, **kwargs)
+            cls.connect(conn_name, **kwargs)
         return super(RedisCache, cls).__new__(cls)
     
     def __init__(self,conn_name='default', *args, **kwargs):
         self.conn = redis.Redis(connection_pool = self._pools[conn_name])  
 
-    @staticmethod
-    def connect(conn_name, **kwargs):
-        try:
-            config = kwargs or settings.REDIS[conn_name]
-            return redis.ConnectionPool(**config)
-        except:
-            raise
+    @classmethod
+    def connect(cls, conn_name, **kwargs):
+        config = kwargs or settings.REDIS[conn_name]
+        cls._pools[conn_name] = redis.ConnectionPool(**config)
        
 class CodisCache(_Cache):
     """
@@ -113,16 +110,13 @@ class CodisCache(_Cache):
     
     def __new__(cls, conn_name='default', *args, **kwargs):
         if conn_name not in cls._connections:
-            cls._connections[conn_name] = cls.connect(conn_name, **kwargs)
+            cls.connect(conn_name, **kwargs)
         return super(CodisCache, cls).__new__(cls)
 
     def __init__(self, conn_name='default', *args, **kwargs):
         self.conn = self._connections[conn_name].getResource()
         
-    @staticmethod
-    def connect(conn_name, **kwargs):  
-        try:  
-            configs = kwargs or settings.CODIS[conn_name]
-            return Connection(**configs)
-        except:
-            raise
+    @classmethod
+    def connect(cls, conn_name, **kwargs):   
+        configs = kwargs or settings.CODIS[conn_name]
+        cls._connections[conn_name] = Connection(**configs)
