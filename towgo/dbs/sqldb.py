@@ -56,26 +56,26 @@ class SqlFormat(object):
                 conditions.append(self.get_condition_str(k, v))                              
         return sign.join(conditions)  
     
-def dbo(query=True):  
+def dbo(commit=False):  
     ''' database operation decorator '''
     def _deco(func):
         def __deco(self, *args, **kwargs):  
             conn = self.get_conn()
             cursor = conn.cursor()
             try:                
-                if query:
-                    as_dict = kwargs.get('as_dict', False)
-                    sql = func(self, *args, **kwargs)
-                    cursor.execute(sql) 
-                    return cursor.fetchallDict() if as_dict else cursor.fetchall()
-                else:
+                if commit:
                     sqls = func(self, *args, **kwargs) 
                     for sql in sqls:      
                         cursor.execute(sql)                    
                     conn.commit()  
-                    return cursor.rowcount                  
+                    return cursor.rowcount                         
+                else:
+                    as_dict = kwargs.get('as_dict', False)
+                    sql = func(self, *args, **kwargs)
+                    cursor.execute(sql) 
+                    return cursor.fetchallDict() if as_dict else cursor.fetchall()             
             except:
-                if not query:
+                if commit:
                     if conn: conn.rollback()  
                 raise
             finally:    
@@ -181,7 +181,7 @@ class SqlConn(SqlFormat):
         sql = "UPDATE %s SET %s WHERE %s" % (self.table, fvalues, fc)  
         return sql
     
-    @dbo(query=False)                        
+    @dbo(commit=True)                        
     def update(self, data, condition):
         '''
         update
@@ -206,7 +206,7 @@ class SqlConn(SqlFormat):
         sql = "INSERT INTO %s (%s) VALUES (%s)" % (self.table, kf, vf)  
         return sql      
     
-    @dbo(query=False) 
+    @dbo(commit=True) 
     def insert(self, data):
         '''
         insert
@@ -225,7 +225,7 @@ class SqlConn(SqlFormat):
         sql = "DELETE FROM %s WHERE %s" % (self.table, fc)
         return sql
     
-    @dbo(query=False)              
+    @dbo(commit=True)              
     def delete(self, condition): 
         ''' 
         delete data 
@@ -233,7 +233,7 @@ class SqlConn(SqlFormat):
         '''
         return (self.delete_sql(condition), )               
     
-    @dbo(query=False) 
+    @dbo(commit=True) 
     def execute(self, *args):
         '''
         @summary: execute several sqls
