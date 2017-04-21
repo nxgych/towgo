@@ -5,6 +5,8 @@ Created on 2017年4月17日
 @author: shuai.chen
 '''
 
+#自定义 python mysql orm
+
 import datetime
 import types
 from abc import ABCMeta
@@ -17,10 +19,11 @@ from DBUtils.PooledDB import PooledDB
 from towgo.msetting import settings
 
 class SqlFormat(object):
+    ''' sql format class '''
     
     @staticmethod  
     def get_value(value):
-        '''get value'''
+        ''' get value '''
         format_string = functools.partial(str.format, "'{0}'")
         
         if type(value) is types.StringType or type(value) is types.UnicodeType:
@@ -46,12 +49,41 @@ class SqlFormat(object):
         """
         conditions = []
         for k,v in condition.iteritems():
-            if isinstance(v,tuple):
+            if isinstance(v, tuple) or isinstance(v, list):
+                assert len(v) >= 2
                 conditions.append(self.get_condition_str(k, v[1], v[0]))
             else:                
                 conditions.append(self.get_condition_str(k, v))                              
         return sign.join(conditions)  
-
+    
+def dbo(query=True):  
+    ''' database operation decorator '''
+    def _deco(func):
+        def __deco(self, *args, **kwargs):  
+            conn = self.get_conn()
+            cursor = conn.cursor()
+            try:                
+                if query:
+                    as_dict = kwargs.get('as_dict', False)
+                    sql = func(self, *args, **kwargs)
+                    cursor.execute(sql) 
+                    return cursor.fetchallDict() if as_dict else cursor.fetchall()
+                else:
+                    sqls = func(self, *args, **kwargs) 
+                    for sql in sqls:      
+                        cursor.execute(sql)                    
+                    conn.commit()  
+                    return cursor.rowcount                  
+            except:
+                if not query:
+                    if conn: conn.rollback()  
+                raise
+            finally:    
+                if cursor: cursor.close()  
+                if conn: conn.close() 
+        return __deco
+    return _deco         
+                
 class SqlConn(SqlFormat):
     ''' Mysql connection class '''
     
@@ -63,29 +95,34 @@ class SqlConn(SqlFormat):
         return object.__new__(cls, *args, **kwargs)
 
     def __init__(self,conn_name='default', *args, **kwargs):
-        self.conn = self._conn[conn_name].connection() 
+        self.conn_name = conn_name
         self.table = args[0] if len(args) > 0 else None
-
-    def __del__(self):
-        try:
-            if self.conn:
-                self.conn.close()
-        except:
-            pass    
+        assert self.table is not None
                     
     @classmethod
     def connect(cls, conn_name, **kwargs):
-        config = kwargs or settings.MYSQL[conn_name]
+        config = kwargs
+        if not config:
+            config = {}
+            config.update(settings.MYSQL[conn_name])
+            config.update(settings.SQL_POOL)
+            
         pool = PooledDB(creator=MySQLdb, 
+                        mincached=config['mincached'], maxcached=config['maxcached'],
+                        maxconnections=config['maxconnections'], blocking=config['blocking'],
                         host=config['host'], port=config['port'], db=config['database'],
                         user=config['username'], passwd=config['password'],
-                        use_unicode=False, charset="utf8", cursorclass=DictCursor,
-                        **settings.SQL_POOL)  
+                        use_unicode=False, charset="utf8", cursorclass=DictCursor)  
         cls._conn[conn_name] = pool
-    
+
+    def get_conn(self):
+        ''' get connection '''
+        return self._conn[self.conn_name].connection() 
+        
     def set_table(self, table):
+        ''' set table '''
         self.table = table
-    
+                 
     def get(self, condition, as_dict=False):
         '''
         get one from db with conditions
@@ -93,127 +130,115 @@ class SqlConn(SqlFormat):
         @param as_dict: return dict type if True   
         '''
         assert len(condition) > 0
-        cursor = self.conn.cursor()
-        try:
+
+        conn = self.get_conn()
+        cursor = conn.cursor()
+        try:          
             fc = self.get_condition(condition)
             sql = "SELECT * FROM %s WHERE %s" % (self.table, fc)
-            cursor.execute(sql)
+            cursor.execute(sql) 
             return cursor.fetchoneDict() if as_dict else cursor.fetchone()
         except:
             raise
         finally:    
-            cursor.close()       
-    
+            if cursor: cursor.close()  
+            if conn: conn.close() 
+                    
+    @dbo()
     def getmany(self, condition={}, start=0, limit=0, as_dict=False):
         '''
         get many from db with conditions
         @param condition: dict type
         @param as_dict: return dict type if True   
         '''        
-        cursor = self.conn.cursor()
-        try:
-            fc = self.get_condition(condition)
-            if fc:
-                sql = "SELECT * FROM %s WHERE %s" % (self.table, fc)
-            else:
-                sql = "SELECT * FROM %s" % self.table
-                  
-            sql += " LIMIT %d,%d" % (start, limit) if limit > 0 else ''
-            cursor.execute(sql)
-            return cursor.fetchallDict() if as_dict else cursor.fetchall()
-        except:
-            raise
-        finally:    
-            cursor.close()
+        fc = self.get_condition(condition)
+        if fc:
+            sql = "SELECT * FROM %s WHERE %s" % (self.table, fc)
+        else:
+            sql = "SELECT * FROM %s" % self.table
+        sql += " LIMIT %d,%d" % (start, limit) if limit > 0 else ""
+        return sql  
 
+    @dbo()
     def get_by_sql(self, sql, as_dict=False):
         '''
         get from db with sql
-        '''        
-        cursor = self.conn.cursor()
-        try:
-            cursor.execute(sql)
-            return cursor.fetchallDict() if as_dict else cursor.fetchall()
-        except:
-            raise
-        finally:    
-            cursor.close() 
-                
+        @param sql: sql
+        ''' 
+        return sql
+                    
+    def update_sql(self, data, condition):  
+        '''
+        get update sql 
+        @param data: updated data, dict type
+        @param condition: query condition, dict type
+        '''      
+        assert len(data) > 0
+        assert len(condition) > 0   
+                      
+        fc = self.get_condition(condition)
+        fvalues = self.get_condition(data, ",")
+        sql = "UPDATE %s SET %s WHERE %s" % (self.table, fvalues, fc)  
+        return sql
+    
+    @dbo(query=False)                        
     def update(self, data, condition):
         '''
         update
         @param data: updated data, dict type
         @param condition: query condition, dict type
         '''    
-        assert len(data) > 0
-        assert len(condition) > 0                
-        cursor = self.conn.cursor()
-        try:
-            fc = self.get_condition(condition)
-            fvalues = self.get_condition(data, ",")
-            sql = "UPDATE %s SET %s WHERE %s" % (self.table, fvalues, fc)  
-            cursor.execute(sql)
-            self.conn.commit()    
-        except:
-            self.conn.rollback()
-            raise
-        finally:    
-            cursor.close()
+        return (self.update_sql(data, condition), ) 
+
+    def insert_sql(self, data):
+        '''
+        get insert sql
+        @param data: dict type
+        '''  
+        assert len(data) > 0  
+        
+        ks, vs = [], []
+        for k,v in data.iteritems():
+            vs.append(self.get_value(v))
+            ks.append(k)
+            
+        kf, vf = ",".join(ks), ",".join(vs)             
+        sql = "INSERT INTO %s (%s) VALUES (%s)" % (self.table, kf, vf)  
+        return sql      
     
+    @dbo(query=False) 
     def insert(self, data):
         '''
         insert
         @param data: dict type
         '''      
-        assert len(data) > 0   
-        cursor = self.conn.cursor()
-        try:
-            ks, vs = [], []
-            for k,v in data.iteritems():
-                vs.append(self.get_value(v))
-                ks.append(k)
-                
-            kf, vf = ",".join(ks), ",".join(vs)             
-            sql = "INSERT INTO %s (%s) VALUES (%s)" % (self.table, kf, vf)
-            cursor.execute(sql)
-            self.conn.commit()    
-        except:
-            self.conn.rollback()
-            raise
-        finally:    
-            cursor.close()
-            
-    def delete(self, condition): 
-        ''' delete data '''
+        return (self.insert_sql(data), )
+
+    def delete_sql(self, condition):  
+        ''' 
+        get delete sql
+        @param condition: query condition, dict type
+        '''        
         assert len(condition) > 0
-        cursor = self.conn.cursor()
-        try:
-            fc = self.get_condition(condition)
-            sql = "DELETE FROM %s WHERE %s" % (self.table, fc)
-            cursor.execute(sql)
-            self.conn.commit()    
-        except:
-            self.conn.rollback()
-            raise
-        finally:    
-            cursor.close()                 
+        
+        fc = self.get_condition(condition)
+        sql = "DELETE FROM %s WHERE %s" % (self.table, fc)
+        return sql
     
+    @dbo(query=False)              
+    def delete(self, condition): 
+        ''' 
+        delete data 
+        @param condition: query condition, dict type
+        '''
+        return (self.delete_sql(condition), )               
+    
+    @dbo(query=False) 
     def execute(self, *args):
         '''
         @summary: execute several sqls
-        '''          
-        cursor = self.conn.cursor()
-        try:
-            for sql in args:
-                cursor.execute(sql)
-
-            self.conn.commit()   
-            return cursor.rowcount()  
-        except:
-            self.conn.rollback()
-            raise
-        finally:    
-            cursor.close()
+        '''  
+        return filter(bool, args)
 
     def executemany(self, sql, values):
         '''
@@ -222,31 +247,61 @@ class SqlConn(SqlFormat):
         @param values: type tuple(tuple)/list[list] 
         @return: execute lines number  
         '''          
-        cursor = self.conn.cursor()
+        conn = self.get_conn()
+        cursor = conn.cursor()
         try:
             cursor.executemany(sql, values)
-            self.conn.commit()  
-            return cursor.rowcount()  
+            conn.commit()  
+            return cursor.rowcount
         except:
-            self.conn.rollback()
+            if conn: conn.rollback()
             raise
         finally:    
-            cursor.close()        
+            if cursor: cursor.close()  
+            if conn: conn.close()         
 
 class Column(object):
     ''' mysql column '''
 
-    def __init__(self, field_name, primary_key=False, default=None):  
+    def __init__(self, field_name, primary_key=False, nullable=True, default=None):  
         '''
         @param field_name: field name
         @param primary_key: is primary key or not
+        @param nullable: can be null or not
         @param default: default value 
         '''
         self.field_name = field_name
         self.primary_key = primary_key
-        self.default = default
+        self.nullable = nullable
+        self.default = default        
         
 class Model(object):
+    '''
+    abstract base model not support create table
+    @example:
+        class User(Model):
+        
+            __connection_name__ = "default"
+            __table_name__ = "test"    
+        
+            id = Column("id", primary_key=True)
+            name = Column("name", default='')
+            age = Column("age" default=18)      
+        
+        #get    
+        user = User.get(id=1)
+        print user.name
+        
+        #delete
+        user.delete() 
+            
+        #save or update
+        user = User()
+        user.id = 1
+        user.name = 'abc'
+        user.age = 18
+        user.save()              
+    '''
     
     __metaclass__ = ABCMeta
     
@@ -347,15 +402,28 @@ class Model(object):
         @param obj: result get from mysql
         '''
         instance = cls(conn, False)
-        class_dict = cls.__dict__
         for k,fn in instance._columns.iteritems():
-            v = class_dict.get(k)
-            if not v:
-                continue
-            value = obj.get(fn, v.default)
+            value = obj.get(fn)
             setattr(instance, k, value)                
         return instance   
+    
+    @classmethod
+    def remove(cls, **condition):
+        conn = cls.get_conn()
+        cond = cls._get_db_data(condition)
+        if len(cond) > 0:                      
+            return conn.delete(cond)
+        return 0
 
+    @classmethod
+    def get_by_sql(cls, sql):
+        '''
+        get from db with sql
+        @param sql: sql
+        '''          
+        conn = cls.get_conn()
+        return conn.get_by_sql(sql, as_dict=True)
+    
     def _get_filed_name(self, fname):
         ''' get field name '''
         return self._columns.get(fname, fname)
@@ -363,31 +431,58 @@ class Model(object):
     def save(self):
         ''' save object '''
         if self._is_new:
-            self._insert()
+            return self.insert()
         else:
-            self._update()    
-
-    def _update(self):
+            return self.update()  
+            
+    def _insert_data(self):        
         attr_dict = self.__dict__
-        data, condition = {}, {}
-        for k, fn in self._columns.iteritems():
-            v = attr_dict.get(k)
-            data[fn] = v.default if isinstance(v, Column) else v  
-        for k in self._primary_keys:
-            key = self._get_filed_name(k)
-            condition[key] = data.pop(key)     
-        self._conn.update(data, condition)
-    
-    def _insert(self):
-        attr_dict = self.__dict__
+        class_dict = self.__class__.__dict__
         data = {}
         for k, fn in self._columns.iteritems():
-            v = attr_dict.get(k)
-            data[fn] = v.default if isinstance(v, Column) else v                 
-        self._conn.insert(data)
+            v = attr_dict.get(k) or class_dict.get(k)
+            value = v
+            if isinstance(v, Column):
+                if v.default is not None:
+                    value = v.default
+                    if callable(value):
+                        value = value()
+                elif not v.nullable:
+                    raise ValueError("'%s' value can't be null!" % v.field_name)      
+            data[fn] = value 
+        return data
+                    
+    def insert(self):
+        ''' insert object '''
+        data = self._insert_data()
+        return self._conn.insert(data)
+    
+    @property     
+    def insert_sql(self):   
+        ''' get insert sql '''
+        data = self._insert_data()
+        return self._conn.insert_sql(data) 
         
-    def delete(self):
-        ''' delete object '''
+    def _update_data_condition(self):
+        data = self._insert_data()
+        condition = {}
+        for k in self._primary_keys:
+            key = self._get_filed_name(k)
+            condition[key] = data.pop(key)  
+        return data, condition                
+        
+    def update(self):
+        ''' update object''' 
+        data, condition = self._update_data_condition()
+        return self._conn.update(data, condition)
+    
+    @property    
+    def update_sql(self):
+        ''' get update sql '''
+        data, condition = self._update_data_condition()
+        return self._conn.update_sql(data, condition)  
+        
+    def _delete_condition(self):    
         attr_dict = self.__dict__
         condition = {}
         for k in self._primary_keys:
@@ -395,5 +490,29 @@ class Model(object):
             value = attr_dict.get(k) 
             if not isinstance(value, Column):
                 condition[key] = value   
+        return condition
+                    
+    def delete(self):
+        ''' delete object '''
+        condition = self._delete_condition()
         if len(condition) > 0:                      
-            self._conn.delete(condition)    
+            return self._conn.delete(condition)    
+        return 0
+    
+    @property         
+    def delete_sql(self):
+        ''' get delete sql '''
+        condition = self._delete_condition()
+        if len(condition) > 0:
+            return self._conn.delete_sql(condition)
+        return None       
+    
+    def execute(self, *sql):
+        ''' execute sql '''
+        return self._conn.execute(*sql) 
+    
+    @classmethod
+    def cexecute(cls, *sql):
+        ''' execute sql '''
+        conn = cls.get_conn()
+        return conn.execute(*sql) 
