@@ -24,13 +24,13 @@ TEMPLATE_PATH = os.path.join(PROJECT_PATH,'templates')
 
 #xsrf configuration
 XSRF_COOKIES = False
-COOKIE_SECRET = "TORGO_COOKIE_SECRET"
+COOKIE_SECRET = "TOWGO_COOKIE_SECRET"
 
 #session configuration
 SESSION = {
     "open":False, #是否开启session           
     "storage":"towgo.cache.db_cache.RedisCache",
-    "secret":"TORGO_SESSION_SECRET",
+    "secret":"TOWGO_SESSION_SECRET",
     "timeout": 7*24*3600
 }
 

@@ -13,6 +13,6 @@ def initialize():
         #init redis
         from towgo.cache.db_cache import RedisCache
         for cn,configs in settings.REDIS.iteritems():
-            RedisCache(cn,**configs)        
+            RedisCache.connect(cn,**configs)        
     except:
         CommonLog.error("initialize: %s" % traceback.format_exc())

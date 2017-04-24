@@ -60,7 +60,7 @@ python setup.py install
 TornadoHttpHandler/TwistedHttpHandler 类是一个异步请求的基类，用来处理http请求。</br>
 如果你需要使用异步非阻塞的请求处理特性，你的handler可以继承该类，post请求需要重写 _post 方法，get请求需要重写 _get 方法。</br>
 
-	from torgo.handler import TornadoHttpHandler,TwistedHttpHandler
+	from towgo.handler import TornadoHttpHandler,TwistedHttpHandler
 	
 	class TestHandler(TornadoHttpHandler):  
 	    def _post(self):
@@ -72,7 +72,7 @@ TornadoHttpHandler/TwistedHttpHandler 类是一个异步请求的基类，用来
 	    		    	
 TcpHandler 用于处理tcp请求的基类， 需要重写 process 方法。</br>	 
  
-	from torgo.handler import TcpHandler
+	from towgo.handler import TcpHandler
 	
 	class TestHandler(TcpHandler):  
 	    def process(self):
@@ -82,14 +82,14 @@ TcpHandler 用于处理tcp请求的基类， 需要重写 process 方法。</br>
 该模块可以用于多进程环境下的日志处理。</br>	    	
 配置中默认添加了info、error、debug三个常用的日志文件，可以直接使用；</br>
 
-	from torgo.log.log_util import CommonLog
+	from towgo.log.log_util import CommonLog
 	CommonLog.info('---')
 	CommonLog.error('---')
 	CommonLog.debug('---')
 	
 你也可以在LOG配置中增加自己的所需要的日志文件；</br>
 
-	from torgo.log.log_util import Log
+	from towgo.log.log_util import Log
 	
     log = Log('文件名').get_logger()
     log.info('---')	
@@ -101,14 +101,13 @@ towgo中添加了redis及分布式缓存系统codis连接模块及api模块，�
 	在initialize方法中添加如下代码，用于初始化redis的连接
 	
 	def initialize():
-		from torgo.msetting import settings
-	    #init redis
-	    #codis：from torgo.cache.db_cache import CodisCache 
-	    from torgo.cache.db_cache import RedisCache
+	    from towgo.msetting import settings
+		#init redis
+	    from towgo.cache.db_cache import RedisCache  #codis：from towgo.cache.db_cache import CodisCache 
 	    for rdb,configs in settings.REDIS.iteritems():
-	        RedisCache(rdb,**configs)   
+	        RedisCache.connect(rdb,**configs)   
 	        
-	from torgo.cache.db_cache import RedisCache  #codis：from torgo.cache.db_cache import CodisCache   
+	from towgo.cache.db_cache import RedisCache  #codis：from towgo.cache.db_cache import CodisCache   
 	cache = RedisCache()
 	cache.set('a',1) 
 	cache.conn.sadd('x','a')
@@ -117,7 +116,7 @@ towgo中添加了redis及分布式缓存系统codis连接模块及api模块，�
 utils中加入了线程池、http request等工具类，可选择使用；</br>	
 
     #线程池使用示例：
-	from torgo.utils.tpool import TPool 
+	from towgo.utils.tpool import TPool 
     tpool = TPool(1,1)  
     tpool.addTask(str,100)
    
