@@ -133,19 +133,19 @@ class TwistedConnection(protocol.ProcessProtocol):
 
         def error(failure):
             logger.error(failure)
-            self.transport.write(Result(cmdId,'Handler error!')()) 
+            self.write(Result(cmdId,'Handler error!')()) 
                     
         if not handler:
-            self.sendLine(Result(cmdId,'Unknown handler!')())
+            self.write(Result(cmdId,'Unknown handler!')())
         else:
             handler_instance = handler(request)   
             if isinstance(handler_instance, TcpHandler):               
                 d = threads.deferToThread(handler_instance.execute)
-                d.addCallback(self.sendLine).addErrback(error)
+                d.addCallback(self.write).addErrback(error)
             else:
-                self.sendLine(Result(cmdId,'Illegal request!')())              
+                self.write(Result(cmdId,'Illegal request!')())              
                                 
-    def sendLine(self, data):
+    def write(self, data):
         self.transport.write(data)    
 
     @classmethod    
