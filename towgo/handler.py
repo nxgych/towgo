@@ -131,9 +131,6 @@ class TornadoHttpHandler(RequestHandler):
         except:
             raise TowgoException("Params error!")    
 
-#session configuration
-sc = settings.SESSION 
-
 class TwistedHttpHandler(Resource):
     '''
     twisted async http base handler
@@ -147,6 +144,7 @@ class TwistedHttpHandler(Resource):
     
     #session register
     session_manager = None 
+    sc = settings.SESSION 
     if sc.get("open",False):
         session_manager = SessionManager(sc.get('storage'),sc.get('secret'),sc.get('timeout'))
                     
