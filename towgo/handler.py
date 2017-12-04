@@ -218,6 +218,9 @@ class TwistedHttpHandler(Resource):
     def getChild(self, path, request):
         return self
     
+    def render(self, template_name, **kwargs):
+        return self.render_string(template_name, **kwargs)
+    
     def render_string(self, template_name, **kwargs):
         '''
         @param template_name: template file name
