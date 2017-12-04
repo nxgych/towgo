@@ -15,11 +15,13 @@ python setup.py install
 
     #tornado http server
     server = TornadoHttpServer()
-    #tornado tcp server
-    #server = TornadoTcpServer()
+    #twisted tcp server
+    #server = TwistedHttpServer()
     
     #设置服务初始化函数，initialize是一个用于初始化的函数对象,项目的初始化处理可以写在该方法中
     server.setInitMethod(initialize) 
+    #多进程模式下可设置进程数
+    server.setProcessNum(2)
     
     #服务启动
     server.start()   
@@ -33,7 +35,7 @@ python setup.py install
 （2）、THREAD_POOL_SIZE ：设定线程池大小；</br>
 （3）、LOG ：日志配置；</br>
 （4）、APPS ：用于注册你的应用，类型为元组，例如demo中的app包；</br>
-（5）、SESSION ：session设置,注意由于session存放在redis中，开启session时，需要配置 REDIS 或 CODIS 数据库，并保证可正常使用；</br>
+（5）、SESSION ：session设置,注意由于session存放在redis中，开启session时，需要配置 REDIS 或 CODIS(分布式redis) 数据库，并保证可正常使用；</br>
  另外towgo中还内置了REDIS、CODIS、SQLALCHEMY、MYSQL、HBASE等数据库的连接配置和连接模块，你可以根据自己的需要添加配置。
 
 ### 3、urls.py</br>
@@ -57,7 +59,7 @@ python setup.py install
 	 ]	
 
 ### 4、Handler 类</br>
-TornadoHttpHandler/TwistedHttpHandler 类是一个异步请求的基类，用来处理http请求。</br>
+TornadoHttpHandler/TwistedHttpHandler（目前TornadoHttpHandler中使用自带模板，TwistedHttpHandler中使用mako模板，需在settings中配置MAKO路径等信息） 类是一个异步请求的基类，用来处理http请求。</br>
 如果你需要使用异步非阻塞的请求处理特性，你的handler可以继承该类，post请求需要重写 _post 方法，get请求需要重写 _get 方法。</br>
 
 	from towgo.handler import TornadoHttpHandler,TwistedHttpHandler
@@ -66,6 +68,13 @@ TornadoHttpHandler/TwistedHttpHandler 类是一个异步请求的基类，用来
 	    def _post(self):
 	    	return 'hello, world!'
 
+    在settings中配置，例：
+	MAKO = {
+	    "directories": [TEMPLATE_PATH], 
+	    "filesystem_checks": False,
+	    "collection_size": 500        
+	}
+	
 	class TestHandler(TwistedHttpHandler):  
 	    def _post(self):
 	    	return 'hello, world!'
@@ -103,11 +112,13 @@ towgo中添加了redis及分布式缓存系统codis连接模块及api模块，�
 	def initialize():
 	    from towgo.msetting import settings
 		#init redis
-	    from towgo.cache.db_cache import RedisCache  #codis：from towgo.cache.db_cache import CodisCache 
+	    from towgo.cache.db_cache import RedisCache  
+	    #from towgo.cache.db_cache import CodisCache 
 	    for rdb,configs in settings.REDIS.iteritems():
 	        RedisCache.connect(rdb,**configs)   
 	        
-	from towgo.cache.db_cache import RedisCache  #codis：from towgo.cache.db_cache import CodisCache   
+	from towgo.cache.db_cache import RedisCache  
+    #from towgo.cache.db_cache import CodisCache   
 	cache = RedisCache()
 	cache.set('a',1) 
 	cache.conn.sadd('x','a')

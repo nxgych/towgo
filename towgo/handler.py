@@ -140,7 +140,8 @@ class TwistedHttpHandler(Resource):
                 return 'hello, world!'    
     '''
         
-    _lookup = TemplateLookup(output_encoding='utf-8', encoding_errors='replace', **settings.MAKO)
+    _lookup = TemplateLookup(input_encoding='utf-8', output_encoding='utf-8',
+                             encoding_errors='replace', **settings.MAKO)
     
     #session register
     session_manager = None 
