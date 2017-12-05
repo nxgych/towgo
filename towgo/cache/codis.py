@@ -16,18 +16,26 @@ BOOLEAN = "False"
 
 class Connection(object):
     '''
-    百分点 codis connection 
+    codis connection 
     '''
     
-    def __init__(self, *args, **kwargs):
-        zkAddr = kwargs.get('zk_addr', '127.0.0.1:2181')
-        proxyPath = kwargs.get('proxy_path', '/jodis/cache')
-        businessID = kwargs.get('business_id', '')
+    def __init__(self, *args, **kwargs): 
+        '''
+        @param param: 
+               zookeeper_address: zookeeper address
+               zookeeper_path: codis proxy path
+               db: redis db default is 0
+        '''       
+        self.__zkAddr = kwargs.get('zookeeper_address', '127.0.0.1:2181')
+        self.__proxyPath = kwargs.get('zookeeper_path', '/jodis/cache')
         
-        self.__zkAddr = zkAddr
-        self.__proxyPath = proxyPath
-        self.__businessID = businessID
-        self.__zk = KazooClient(zkAddr)
+        self.__db = kwargs.get('db', 0)
+        self.__passwd = kwargs.get('password', None)
+        self.__max_connections = kwargs.get('max_connections', None)
+        
+        self.__businessID = kwargs.get('business_id', '')
+        
+        self.__zk = KazooClient(self.__zkAddr)
         self.__connPoolIndex = -1
         self.__connPool = []
         self.__InitFromZK()
@@ -50,7 +58,8 @@ class Connection(object):
             for proxyinfo in self.__proxylist:
                 proxyip = proxyinfo["addr"].split(':')[0]
                 proxyport = proxyinfo["addr"].split(':')[1]
-                conn = redis.Redis(host=proxyip, port=int(proxyport))
+                conn = redis.Redis(host=proxyip, port=int(proxyport), db=self.__db, 
+                                   password=self.__passwd, max_connections=self.__max_connections)
                 self.__connPool.append(conn)
         except:
             raise

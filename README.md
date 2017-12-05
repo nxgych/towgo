@@ -14,9 +14,9 @@ python setup.py install
 ### 1、Server 类：</br>
 
     #tornado http server
-    server = TornadoHttpServer()
-    #twisted tcp server
-    #server = TwistedHttpServer()
+    server = TornadoHttpServer()  #TwistedHttpServer()
+    #tornado tcp server
+    #server = TornadoTcpServer()  #TwistedTcpServer()
     
     #设置服务初始化函数，initialize是一个用于初始化的函数对象,项目的初始化处理可以写在该方法中
     server.setInitMethod(initialize) 

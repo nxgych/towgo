@@ -46,6 +46,12 @@ class TornadoHttpHandler(RequestHandler):
     
     executor = ThreadPoolExecutor(settings.THREAD_POOL_SIZE)
 
+    _lookup = None
+    if settings.TORNADO_USE_MAKO:
+        _lookup = TemplateLookup(input_encoding='utf-8', output_encoding='utf-8',
+                                 encoding_errors='replace', **settings.MAKO)
+    
+    
     def __init__(self, *args, **kwargs):
         super(TornadoHttpHandler, self).__init__(*args, **kwargs)
         
@@ -101,8 +107,28 @@ class TornadoHttpHandler(RequestHandler):
                    
     def prepare(self):
         '''Called at the beginning of a request before  `_get`/`_post`'''
-        super(TornadoHttpHandler, self).prepare()    
+        super(TornadoHttpHandler, self).prepare()   
+        
+    def _render_string(self, template_name, **kwargs): 
+        '''
+        @param template_name: template file name
+        Renders the mako template with the given arguments as the response
+        '''         
+        template = self._lookup.get_template(template_name) 
+        return template.render_unicode(**kwargs).encode('utf-8','replace')           
 
+    def render(self, template_name, **kwargs):
+        if self._lookup is not None:
+            self.finish(self._render_string(template_name, **kwargs))
+        else:
+            super(TornadoHttpHandler, self).render(template_name, **kwargs)
+    
+    def render_string(self, template_name, **kwargs):
+        if self._lookup is not None:
+            return self._render_string(template_name, **kwargs)
+        else:
+            return super(TornadoHttpHandler, self).render_string(template_name, **kwargs)
+    
     def get_session(self, key=None):
         '''
         get from session

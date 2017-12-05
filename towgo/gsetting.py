@@ -32,7 +32,10 @@ DEBUG = False
 XSRF_COOKIES = False
 COOKIE_SECRET = "TOWGO_COOKIE_SECRET"
 
-#mako templates for twisted
+#default is False. True:use mako template, False:use tornado template
+TORNADO_USE_MAKO = False
+
+#mako templates
 MAKO = {
     "directories": [TEMPLATE_PATH], 
     "filesystem_checks": False,
@@ -76,9 +79,9 @@ REDIS = {
 #codis configuration
 CODIS={
        "default":{
-           "zk_addr":"127.0.0.1:2181", #zookeeper 地址
-           "proxy_path":"/jodis/****", 
-           "business_id":""   #业务id，默认为空
+           "zookeeper_address":"127.0.0.1:2181", #zookeeper 地址
+           "zookeeper_path":"/jodis/cache", 
+           "db":0   #redis db
        }
 }
 
