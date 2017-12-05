@@ -63,9 +63,8 @@ REDIS = {
 #codis configuration
 CODIS={
        "default":{
-           "zk_addr":"127.0.0.1:2181", #zookeeper地址
-           "proxy_path":"/jodis/****",
-           "business_id":""   #业务id，默认为空
+           "zookeeper_address":"127.0.0.1:2181", #zookeeper地址
+           "zookeeper_path":"/jodis/demo"
        }
 }
 

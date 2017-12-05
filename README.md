@@ -35,7 +35,9 @@ python setup.py install
 （2）、THREAD_POOL_SIZE ：设定线程池大小；</br>
 （3）、LOG ：日志配置；</br>
 （4）、APPS ：用于注册你的应用，类型为元组，例如demo中的app包；</br>
-（5）、SESSION ：session设置,注意由于session存放在redis中，开启session时，需要配置 REDIS 或 CODIS(分布式redis) 数据库，并保证可正常使用；</br>
+（5）、SESSION ：session设置,注意由于session存放在redis中，开启session时，需要配置 REDIS 数据库，并保证可正常使用；</br>
+（6）、MAKO：mako模板设置比；</br>
+（7）、TORNADO_USE_MAKO：tornado可支持mako模板，True:使用mako模板, False:使用自带模板，默认False；</br>
  另外towgo中还内置了REDIS、CODIS、SQLALCHEMY、MYSQL、HBASE等数据库的连接配置和连接模块，你可以根据自己的需要添加配置。
 
 ### 3、urls.py</br>
@@ -59,7 +61,7 @@ python setup.py install
 	 ]	
 
 ### 4、Handler 类</br>
-TornadoHttpHandler/TwistedHttpHandler（目前TornadoHttpHandler中使用自带模板，TwistedHttpHandler中使用mako模板，需在settings中配置MAKO路径等信息） 类是一个异步请求的基类，用来处理http请求。</br>
+TornadoHttpHandler/TwistedHttpHandler（目前TornadoHttpHandler中默认使用自带模板，TwistedHttpHandler中使用mako模板，需在settings中配置MAKO路径等信息） 类是一个异步请求的基类，用来处理http请求。</br>
 如果你需要使用异步非阻塞的请求处理特性，你的handler可以继承该类，post请求需要重写 _post 方法，get请求需要重写 _get 方法。</br>
 
 	from towgo.handler import TornadoHttpHandler,TwistedHttpHandler
@@ -104,7 +106,7 @@ TcpHandler 用于处理tcp请求的基类， 需要重写 process 方法。</br>
     log.info('---')	
 
 ### 6、cache模块</br>
-towgo中添加了redis及分布式缓存系统codis连接模块及api模块，可以方便的选择使用；</br>
+towgo中添加了redis及codis(分布式redis)连接模块及api模块，可以方便的选择使用；</br>
 
 	先定义initialize方法，Server实例需要设置initialize方法；
 	在initialize方法中添加如下代码，用于初始化redis的连接
