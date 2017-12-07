@@ -45,7 +45,7 @@ MAKO = {
 #session configuration
 SESSION = {
     "open":False, #是否开启session
-    "storage":"towgo.cache.db_cache.RedisCache",
+    "storage":"towgo.cache.local_cache.LocalCache",
     "secret":"TOWGO_SESSION_SECRET",
     "timeout": 7*24*3600
 }

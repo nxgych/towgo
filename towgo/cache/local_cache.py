@@ -41,7 +41,10 @@ class LocalCache(object):
     def get_size(self):
         return len(self._store)
     
-    def has_key(self, key):
+    def keys(self):
+        return self._store.keys()
+    
+    def exists(self, key):
         return key in self._store 
     
     def get(self, key):

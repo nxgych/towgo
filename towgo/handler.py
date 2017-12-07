@@ -122,13 +122,16 @@ class TornadoHttpHandler(RequestHandler):
             self.finish(self._render_string(template_name, **kwargs))
         else:
             super(TornadoHttpHandler, self).render(template_name, **kwargs)
-    
+
+    def render_html(self, template_name, **kwargs):
+        return self.render(template_name, **kwargs)
+        
     def render_string(self, template_name, **kwargs):
         if self._lookup is not None:
             return self._render_string(template_name, **kwargs)
         else:
             return super(TornadoHttpHandler, self).render_string(template_name, **kwargs)
-    
+
     def get_session(self, key=None):
         '''
         get from session
@@ -245,7 +248,7 @@ class TwistedHttpHandler(Resource):
     def getChild(self, path, request):
         return self
     
-    def render(self, template_name, **kwargs):
+    def render_html(self, template_name, **kwargs):
         return self.render_string(template_name, **kwargs)
     
     def render_string(self, template_name, **kwargs):

@@ -11,7 +11,7 @@ import hmac
 import hashlib
 import json
 
-DEFAULT_STORAGE = "towgo.cache.db_cache.RedisCache"
+DEFAULT_STORAGE = "towgo.cache.local_cache.LocalCache"
 DEFAULT_SECRET = "TOWGO_SESSION_SECRET"
 DEFAULT_TIMEOUT = 24*3600
 

@@ -29,7 +29,7 @@ COOKIE_SECRET = "TOWGO_COOKIE_SECRET"
 #session configuration
 SESSION = {
     "open":False, #是否开启session           
-    "storage":"towgo.cache.db_cache.RedisCache",
+    "storage":"towgo.cache.local_cache.LocalCache",
     "secret":"TOWGO_SESSION_SECRET",
     "timeout": 7*24*3600
 }
@@ -64,7 +64,8 @@ REDIS = {
 CODIS={
        "default":{
            "zookeeper_address":"127.0.0.1:2181", #zookeeper地址
-           "zookeeper_path":"/jodis/demo"
+           "zookeeper_path":"/jodis/demo",
+           "db":0   #redis db default is 0
        }
 }
 
