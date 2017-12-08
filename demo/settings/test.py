@@ -34,6 +34,16 @@ SESSION = {
     "timeout": 7*24*3600
 }
 
+#default is False. True:use mako template, False:use tornado template
+TORNADO_USE_MAKO = True
+
+#mako templates
+MAKO = {
+    "directories": [TEMPLATE_PATH], 
+    "filesystem_checks": False,
+    "collection_size": 500        
+}
+
 #log configuration
 LOG = {        
     "path":os.path.join(PROJECT_PATH,'logs'), #日志文件路径

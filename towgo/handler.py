@@ -10,6 +10,7 @@ from __future__ import absolute_import
 
 import time
 import datetime
+import logging
 from abc import ABCMeta,abstractmethod
 
 from concurrent.futures import ThreadPoolExecutor
@@ -32,6 +33,8 @@ from .session.manager import Session
 from .session.manager import SessionManager
 from .msetting import settings
 from .utils import TowgoException
+
+logger = logging.getLogger(__name__)
 
 class TornadoHttpHandler(RequestHandler):
     '''
@@ -160,6 +163,14 @@ class TornadoHttpHandler(RequestHandler):
         except:
             raise TowgoException("Params error!")    
 
+class TornadoRootHandler(TornadoHttpHandler):
+
+    def _get(self):
+        return "Welcome to use towgo!"
+
+    def _post(self):
+        return self._get()
+    
 class TwistedHttpHandler(Resource):
     '''
     twisted async http base handler
@@ -196,7 +207,8 @@ class TwistedHttpHandler(Resource):
         self.request.finish()   
         
     def error(self, failure):   
-        self.request.write(failure)  
+        self.request.write(str(failure))  
+        logger.error(str(failure))
         self.request.finish()  
 
     def render_GET(self, request):
@@ -292,7 +304,7 @@ class TwistedHttpHandler(Resource):
     def set_secure_cookie(self, key, value, expires_days=30):
         if self.request is not None:
             expires = datetime.datetime.utcnow() + datetime.timedelta(days=expires_days)
-            self.request.addCookie(key, value, expires=format_timestamp(expires))
+            self.request.addCookie(key, value, expires=format_timestamp(expires), path="/")
                     
     def get_body_params(self):
         '''

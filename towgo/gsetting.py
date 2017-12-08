@@ -11,7 +11,8 @@ import os
 #--------------------------required configuration below-------------------------
 PROJECT_PATH = os.path.dirname(os.path.dirname(__file__))
 
-_SETTINGS_MODULE_ENVIRON = "TOWGO_APP_SETTINGS" #settings环境变量，请勿修改
+#settings环境变量，请勿修改
+_SETTINGS_MODULE_ENVIRON = "TOWGO_SETTINGS"
 
 MULTI_PROCESS = True   #multiple process if true 
 THREAD_POOL_SIZE = 50   #async thread pool size or twisted thread pool size

@@ -37,7 +37,10 @@ class Session(SessionData):
                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                               
     def save(self):
         self.session_manager.set(self.request_handler, self)
-        
+
+    def remove(self):
+        self.session_manager.remove(self.session_id) 
+                
 class SessionManager(object):
     
     def __init__(self, storege, secret, timeout):
@@ -93,6 +96,9 @@ class SessionManager(object):
         request_handler.set_secure_cookie("verification", session.hmac_key)
         session_data = json.dumps(dict(session.items()))
         self.cache.setex(session.session_id, session_data, self.session_timeout)
+        
+    def remove(self, session_id):
+        self.cache.delete(session_id)    
         
     def _generate_id(self):
         new_id = hashlib.sha256("{0}{1}".format(self.secret,str(uuid.uuid4())))

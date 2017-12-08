@@ -8,7 +8,7 @@ Created on 2017年1月9日
 
 from __future__ import absolute_import
 
-import os
+import os, sys
 from multiprocessing import cpu_count
 from abc import ABCMeta,abstractmethod
 
@@ -21,13 +21,14 @@ from tornado.options import options
 from tornado.tcpserver import TCPServer
 from tornado.web import url
 
+from twisted.python import log
 from twisted.internet.protocol import ServerFactory
 from twisted.web import server
 from twisted.internet import reactor
 
-from .handler import TwistedRootHandler
 from .msetting import settings
 from .session.manager import SessionManager
+from .handler import TornadoRootHandler, TwistedRootHandler
 from .connection import TornadoConnection, TwistedConnection
 
 class FunctionException(Exception):
@@ -61,7 +62,7 @@ class TornadoApp(Application):
         load urls
         ''' 
         apps = settings.APPS
-        urls = []
+        urls = [url(r'/', TornadoRootHandler)]
         for a in apps:
             m = __import__("%s.urls" % a, globals={}, locals={}, fromlist=['urls'])
             urls.extend([url(p,h) for p,h in m.urls])
@@ -269,6 +270,7 @@ class TwistedTcpServer(BaseServer):
     """
     
     def _start(self, factory):
+        log.startLogging(sys.stdout)
         reactor.suggestThreadPoolSize(settings.THREAD_POOL_SIZE)
         reactor.callWhenRunning(self.initialize)   
         reactor.listenTCP(options.port, factory)

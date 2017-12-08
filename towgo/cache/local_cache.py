@@ -62,6 +62,9 @@ class LocalCache(object):
     def remove(self, key):
         return self._store.pop(key)   
     
+    def delete(self, key):
+        return self._store.pop(key) 
+    
     def clear(self):
         self._store.clear()
         
