@@ -50,9 +50,10 @@ class Log(object):
             cls.LOGS[ft] = Logger(
                                   ft,fn,files[ft],
                                   log_config.get("when","MIDNIGHT"),
-                                  log_config.get('backup_count',10),
+                                  log_config.get("backup_count",10),
                                   log_config.get("suffix","%Y-%m-%d"),
-                                  log_config.get('console',False)
+                                  log_config.get("console",False),
+                                  log_config.get("fmt","")
                                   )
         return super(Log, cls).__new__(cls)    
 

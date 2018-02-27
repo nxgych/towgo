@@ -9,7 +9,6 @@ Created on 2017年1月4日
 from __future__ import absolute_import
 
 import logging
-
 from .mlogger import MultiProcessTimedRotatingFileHandler
 
 class Logger(object):
@@ -17,12 +16,17 @@ class Logger(object):
     _fmt = "[%(asctime)s]-%(filename)s:%(lineno)s-%(levelname)s - %(message)s"
           
     def __init__(self, ft, log_file, level, 
-                       when='MIDNIGHT', backup_count=10, suffix="%Y-%m-%d", console=False):
+                       when='MIDNIGHT', backup_count=10, 
+                       suffix="%Y-%m-%d", console=False,
+                       fmt=""):
         """
         @param param: 
-            log_file:日志文件
-            console:是否需要控制台输出
+            ft : log sign
+            log_file : log file
+            console : Is it need to output in console?
+            fmt : log formatter
         """
+        self.fmt = fmt or self._fmt
         self.logger = logging.getLogger(ft)     
            
         self.initialize(log_file, when, backup_count, suffix, console)    
@@ -32,7 +36,7 @@ class Logger(object):
         filehandle = MultiProcessTimedRotatingFileHandler(fname, when, 1,
                                                 backupCount=backup_count, encoding="utf-8")
         filehandle.suffix = suffix         
-        formatter = logging.Formatter(fmt=self._fmt)
+        formatter = logging.Formatter(fmt=self.fmt)
         filehandle.setFormatter(formatter)
         self.logger.addHandler(filehandle)  
     

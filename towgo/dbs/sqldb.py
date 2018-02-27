@@ -6,7 +6,7 @@ Created on 2017年4月17日
 @author: shuai.chen
 '''
 
-#自定义 python mysql orm
+#self-define python mysql orm
 
 import datetime
 import types
@@ -90,15 +90,15 @@ class SqlConn(SqlFormat):
     
     _conn = {}
     
-    def __new__(cls, conn_name='default', *args, **kwargs):
+    def __new__(cls, conn_name='default', table="", *args, **kwargs):
         if conn_name not in cls._conn:
             cls.connect(conn_name, **kwargs)
         return object.__new__(cls, *args, **kwargs)
 
-    def __init__(self,conn_name='default', *args, **kwargs):
+    def __init__(self,conn_name='default', table="", *args, **kwargs):
+        assert table != ""
         self.conn_name = conn_name
-        self.table = args[0] if len(args) > 0 else None
-        assert self.table is not None
+        self.table = table
                     
     @classmethod
     def connect(cls, conn_name, **kwargs):
