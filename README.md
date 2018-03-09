@@ -7,11 +7,11 @@ towgo is a simple web server framework based both tornado and twisted。
 download the realease package and unpack it, access the path and execute the command:</br>
 python setup.py install
 
-follow steps:
-    (1) wget https://github.com/nxgych/towgo/releases/download/1.0.0/towgo-1.0.0.tar.gz
-    (2) tar -xzvf towgo-1.0.0.tar.gz
-    (3) cd towgo-1.0.0
-    (4) python setup.py install
+    follow steps:
+    (1) wget https://github.com/nxgych/towgo/releases/download/1.0.0/towgo-1.0.0.tar.gz</br>
+    (2) tar -xzvf towgo-1.0.0.tar.gz</br>
+    (3) cd towgo-1.0.0</br>
+    (4) python setup.py install</br>
 
 ## Tutorial</br>
 参考demo，执行main.py脚本启动服务。
