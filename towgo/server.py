@@ -235,12 +235,15 @@ class TornadoHttpServer(TornadoTcpServer):
         server.start()     
     """
     
+    def __init__(self, ssl_options=None):
+        self.ssl_options = ssl_options
+    
     def start(self):
         '''
         start server
         '''
         application = TornadoApp(**self.kwargs)
-        server = HTTPServer(application)  
+        server = HTTPServer(application, ssl_options=self.ssl_options)  
         self._start(server)
 
 class TwistedTcpServer(BaseServer):
