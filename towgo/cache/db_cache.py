@@ -18,10 +18,13 @@ from towgo.msetting import settings
 
 class _Cache(object):
     '''
-    redis cache base apis
+    REDIS cache base API
     '''   
     __metaclass__ = ABCMeta
-     
+
+    def __getattr__(self, attr):
+        return getattr(self.conn, attr)
+         
     def get_conn(self):
         return self.conn
     
