@@ -232,7 +232,13 @@ class Model(object):
 
             if len(primary_key_values) > 0:
                 self._key = self.__primary_key_delimiter__.join(map(str,primary_key_values))    
- 
+  
+    def getKey(self):
+        '''
+        get primary key
+        '''
+        return self._key   
+     
     def setKey(self, key): 
         '''
         set primary key
@@ -241,12 +247,14 @@ class Model(object):
         if not key or not isinstance(key,str):  
             raise PrimaryKeyException("Value of primary key must be a string type and not null")   
         self._key = key   
-            
-    def getKey(self):
-        '''
-        get primary key
-        '''
-        return self._key             
+        
+    @property
+    def key(self):
+        return self.getKey()          
+
+    @key.setter
+    def key(self, key):
+        self.setKey(key)
 
     def as_dict(self):
         '''
