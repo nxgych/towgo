@@ -4,16 +4,38 @@
 '''
 Created on 2016/11/04
 @author: willing
-@url: https://github.com/nxgych/whbase
 
-hbase orm based happybase
+HBASE ORM based happybase
 '''
 
-import happybase
 from abc import ABCMeta
+import functools
 
-class ColumnFamliyExceotion(Exception):  
+import happybase
+
+
+class ColumnFamilyExceotion(Exception):  
     pass   
+
+def operate(func):
+    '''
+    database operate decorator
+    '''
+    @functools.wraps(func)
+    def _deco(self, *args, **kwargs):
+        exception = None
+        for _ in range(3):
+            try:
+                with self.pool.connection(timeout=60) as conn:
+                    if self.table_name not in conn.tables():
+                        conn.create_table(self.table_name, {self.cf: dict()})                    
+                    
+                    self.table = conn.table(self.table_name)  
+                    return func(self, *args, **kwargs)   
+            except Exception, e:
+                exception = e  
+        raise exception                  
+    return _deco
 
 class Connection(object):
     '''
@@ -21,83 +43,71 @@ class Connection(object):
     you must execute the class method 'connect' before you create a instance of 'Connection'
     @example:
         Connection.connect(host='127.0.0.1',port=9090)
-    
-    if you wanna to use more method of happybase, you can init this class directly without Model
-    @example:
-        conn = Connection(table='table')
-        conn.table.method()
     '''
     
     _conn = {}
     
-    def __new__(cls, conn_name="default", table="", cf='cf:', *args, **kwargs):
+    def __new__(cls, conn_name="default", *args, **kwargs):
         if conn_name not in cls._conn:
             cls.connect(conn_name, **kwargs)
         return object.__new__(cls, *args, **kwargs)
     
-    def __init__(self, conn_name="default", table="", cf='cf:', *args, **kwargs):
+    def __init__(self, conn_name="default", *args, **kwargs):
         '''
-        @param table: hbase table name 
-        @param cf: hbase table column famliy, default is 'cf:'  
+        @param conn_name: hbase connection name 
         '''
-        assert table != ""
+        table_name, cf = args[0], args[1]
+        assert table_name != ""
+        
         self.conn_name = conn_name
-        self.cf = self._getColumnFamliyDefault(cf)
-        self.table = self.getConn().table(table)  
-             
-        self._createTable(table)
+        self.table_name = table_name
+        
+        self.cf = self._getColumnFamilyDefault(cf)
         
     @classmethod
     def connect(cls, conn_name="default", **kwargs):
-        '''
-        happybase connect, you must execute this method before you create a instance of 'Connection'
-        
-        @example:
-            Connection.connect(host='127.0.0.1',port=9090)
-        '''
-        cls._conn[conn_name] = happybase.Connection(**kwargs)
-        
-    def getConn(self):
+        size = kwargs.pop('size', 10)
+        cls._conn[conn_name] = happybase.ConnectionPool(size=size, **kwargs)
+    
+    @property    
+    def pool(self):
         ''' 
-        get connection 
+        get connection pool
         '''      
         return self._conn[self.conn_name]    
         
-    def _getColumnFamliyDefault(self, cf):
+    def _getColumnFamilyDefault(self, cf):
         '''
-        get default column famliy
+        get default column family
         '''
         if not cf:
-            raise ColumnFamliyExceotion('Unknown column famliy')      
+            raise ColumnFamilyExceotion('Unknown column family')      
         return '%s:' % cf if not cf.endswith(':') else cf               
     
-    def _createTable(self, table):
-        '''
-        create table if the table is not exist
-        '''
-        if table not in self.getConn().client.getTableNames():
-            self.getConn().create_table(table,{self.cf: dict()})
-   
+    @operate
     def get(self, key):
         '''
         get one object if the key is exist
         '''
         return self.table.row(key)
     
+    @operate
     def gets(self, keys=[]):
         '''
-        get several objects by the keys you setted
+        get several objects by the keys you set
         '''
         if len(keys) <= 0:
             return []
         return self.table.rows(keys)
     
+    @operate
     def put(self, key, value={}):
         '''
         put item
         '''
         self.table.put(key, value)
     
+    @operate
     def delete(self, key, columns=[]):
         '''
         delete key or columns
@@ -107,6 +117,7 @@ class Connection(object):
         else:
             self.table.delete(key) 
 
+    @operate
     def scan(self):
         '''
         scan the table
@@ -127,7 +138,7 @@ class Model(object):
         class Test(Model):
         
             __table_name__ = "test"
-            __column_famliy__ = "cf:"          # column famliy default is 'cf:'
+            __column_family__ = "cf:"          # column family default is 'cf:'
             __primary_key_delimiter__ = "_"    # delimiter of primary keys default is '_'      
         
             id = Column("id", primary_key=0, value_type=int)
@@ -166,9 +177,9 @@ class Model(object):
     __table_name__ = ''  
     
     '''
-    column famliy, default is 'cf:', you can redefine this variable in your model
+    column family, default is 'cf:', you can redefine this variable in your model
     '''
-    __column_famliy__ = 'cf:'   # column famliy default is 'cf:'
+    __column_family__ = 'cf:'   # column family default is 'cf:'
     
     '''
     delemiter of primary keys, default is '_', you can redefine this variable in your model
@@ -196,7 +207,7 @@ class Model(object):
         @param conn: happybase Connection 
         '''
         assert self.__table_name__ != ''
-        self._conn = conn or Connection(self.__connection_name__, self.__table_name__, self.__column_famliy__)
+        self._conn = conn or Connection(self.__connection_name__, self.__table_name__, self.__column_family__)
         self._cf = self._conn.cf
         self._key = '' 
 
@@ -207,7 +218,7 @@ class Model(object):
     @classmethod
     def getConn(cls):
         assert cls.__table_name__ != ''
-        return Connection(cls.__connection_name__, cls.__table_name__, cls.__column_famliy__)
+        return Connection(cls.__connection_name__, cls.__table_name__, cls.__column_family__)
     
     def _getFieldName(self, fname):
         '''
@@ -366,8 +377,8 @@ class Column(object):
     def __init__(self, field_name, primary_key=-1, value_type=str):    
         '''
         @param field_name: field name
-               if you have several column famliy, you can add column famliy as prefix of field name
-               and ignore the Model variable '__column_famliy__'
+               if you have several column family, you can add column family as prefix of field name
+               and ignore the Model variable '__column_family__'
                like this:
                    id = Column("cf:id", primary_key=0, value_type=int)
                    age = Column("cfattr:age", value_type=str)   
