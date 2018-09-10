@@ -12,10 +12,7 @@ from abc import ABCMeta
 import functools
 
 import happybase
-
-
-class ColumnFamilyExceotion(Exception):  
-    pass   
+  
 
 def operate(func):
     '''
@@ -36,6 +33,10 @@ def operate(func):
                 exception = e  
         raise exception                  
     return _deco
+
+
+class ColumnFamilyExceotion(Exception):  
+    pass 
 
 class Connection(object):
     '''
