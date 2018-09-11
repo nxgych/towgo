@@ -5,13 +5,13 @@
 Created on 2016/11/04
 @author: willing
 
-HBASE ORM based happybase
+HBASE ORM based of happybase
 '''
 
-from abc import ABCMeta
-import functools
 
+import functools
 import happybase
+from abc import ABCMeta
   
 
 def operate(func):
@@ -23,10 +23,8 @@ def operate(func):
         exception = None
         for _ in range(3):
             try:
-                with self.pool.connection(timeout=60) as conn:
-                    if self.table_name not in conn.tables():
-                        conn.create_table(self.table_name, {self.cf: dict()})                    
-                    
+                with self.pool.connection(timeout=30) as conn:
+                    self.check_table(conn)
                     self.table = conn.table(self.table_name)  
                     return func(self, *args, **kwargs)   
             except Exception, e:
@@ -35,7 +33,7 @@ def operate(func):
     return _deco
 
 
-class ColumnFamilyExceotion(Exception):  
+class WhbaseExceotion(Exception):  
     pass 
 
 class Connection(object):
@@ -76,13 +74,20 @@ class Connection(object):
         get connection pool
         '''      
         return self._conn[self.conn_name]    
-        
+
+    def check_table(self, conn):
+        '''
+        check table
+        '''
+        if self.table_name not in conn.tables():
+            conn.create_table(self.table_name, {self.cf: dict()})      
+                        
     def _getColumnFamilyDefault(self, cf):
         '''
         get default column family
         '''
         if not cf:
-            raise ColumnFamilyExceotion('Unknown column family')      
+            raise WhbaseExceotion('Unknown column family')      
         return '%s:' % cf if not cf.endswith(':') else cf               
     
     @operate
@@ -117,17 +122,42 @@ class Connection(object):
             self.table.delete(key, columns)
         else:
             self.table.delete(key) 
-
-    @operate
-    def scan(self):
-        '''
-        scan the table
-        '''
-        return self.table.scan()
+        
+class Column(object):
+    '''
+    hbase column definition class
+    '''
     
-class PrimaryKeyException(Exception):
-    pass
+    def __init__(self, field_name, primary_key=-1, value_type=str):    
+        '''
+        @param field_name: field name
+               if you have several column family, you can add column family as prefix of field name
+               and ignore the Model variable '__column_family__'
+               like this:
+                   id = Column("cf:id", primary_key=0, value_type=int)
+                   age = Column("cfattr:age", value_type=str)   
+                   age = Column("cfattr:age", value_type=int)         
+        @param primary_key: default is -1,the value means the location of primary key that start with 0,
+               you should set the value if you wanna the field value to be part of primary key and 
+               it will join by the delimiter sign of the Model variable '__primary_key_delimiter__'.
+        @param value_type: value type is a function you except to transfer the field value,
+               default is 'str' function      
+        '''               
+        if not field_name or not isinstance(field_name, str):
+            raise WhbaseExceotion("column name must be a string type and not null")
+        if not hasattr(value_type,'__call__'):
+            raise WhbaseExceotion("'%s' is not a function" % value_type)
 
+        self.field_name = field_name
+        self.value_type = value_type 
+        self.primary_key = primary_key
+                
+    def getValue(self, value):  
+        '''
+        get column value
+        '''
+        return  self.value_type(value) 
+    
 class Model(object):  
     """
     Base model of hbase,
@@ -135,7 +165,6 @@ class Model(object):
     you must execute the class method 'connect' of 'Connection' class before you use Model
     
     @example:
-    
         class Test(Model):
         
             __table_name__ = "test"
@@ -161,8 +190,7 @@ class Model(object):
     
         #put with dict
         test = Test()
-        values = {'id':1,'name':'xyz','age':22}
-        test.put(**values)  
+        test.put(**{'id':1,'name':'xyz','age':22})  
     """
     
     __metaclass__ = ABCMeta
@@ -208,9 +236,8 @@ class Model(object):
         @param conn: happybase Connection 
         '''
         assert self.__table_name__ != ''
+        self._key = ''
         self._conn = conn or Connection(self.__connection_name__, self.__table_name__, self.__column_family__)
-        self._cf = self._conn.cf
-        self._key = '' 
 
     @property    
     def conn(self):
@@ -227,7 +254,7 @@ class Model(object):
         '''
         field_name = self._columns.get(fname, fname)
         if ':' not in field_name:
-            return '%s%s' % (self._cf,field_name)
+            return '%s%s' % (self._conn.cf,field_name)
         return field_name
         
     def _setKeyByPrimaryKey(self, kwargs):  
@@ -239,7 +266,7 @@ class Model(object):
             for k in self._primary_keys:
                 v = kwargs.get(k)
                 if not v:
-                    raise PrimaryKeyException("Value of primary key cannot be '%s'" % v)
+                    raise WhbaseExceotion("Value of primary key cannot be '%s'" % v)
                 primary_key_values.append(v)
 
             if len(primary_key_values) > 0:
@@ -257,7 +284,7 @@ class Model(object):
         you can set the object key follow you special value with this method directly
         '''
         if not key or not isinstance(key,str):  
-            raise PrimaryKeyException("Value of primary key must be a string type and not null")   
+            raise WhbaseExceotion("Value of primary key must be a string type and not null")   
         self._key = key   
         
     @property
@@ -293,7 +320,7 @@ class Model(object):
         @return: [(key,object subclass of Model),...]
         '''
         conn = cls.getConn()
-        return [(k,cls._createObject(k,conn, v)) for k,v in conn.gets(keys)]     
+        return [(k, cls._createObject(k, conn, v)) for k,v in conn.gets(keys)]     
 
     @classmethod
     def create(cls, key, **data):
@@ -339,7 +366,7 @@ class Model(object):
         ''' 
         self._setKeyByPrimaryKey({k:kwargs.get(k) for k in self._primary_keys})  
         if not self._key:
-            raise PrimaryKeyException("Value of primary key cannot be '%s'" % self._key)   
+            raise WhbaseExceotion("Value of primary key cannot be '%s'" % self._key)   
                   
         values = {self._getFieldName(k):str(v) for k,v in kwargs.iteritems() if k in self._columns}
         self._conn.put(self._key, value=values)    
@@ -351,7 +378,7 @@ class Model(object):
         columns = self.__dict__
         self._setKeyByPrimaryKey({k:columns.get(k) for k in self._primary_keys})
         if not self._key:
-            raise PrimaryKeyException("Value of primary key cannot be '%s'" % self._key)  
+            raise WhbaseExceotion("Value of primary key cannot be '%s'" % self._key)  
         
         values = {self._getFieldName(k):str(v) for k,v in columns.iteritems() if k in self._columns}            
         self._conn.put(self._key, value=values)
@@ -363,45 +390,4 @@ class Model(object):
         if self._key:
             cols = [self._getFieldName(c) for c in columns]
             self._conn.delete(self._key, cols)
-
-class ColumnException(Exception):
-    pass
-
-class FunctionException(Exception):
-    pass
-        
-class Column(object):
-    '''
-    hbase column definition class
-    '''
-    
-    def __init__(self, field_name, primary_key=-1, value_type=str):    
-        '''
-        @param field_name: field name
-               if you have several column family, you can add column family as prefix of field name
-               and ignore the Model variable '__column_family__'
-               like this:
-                   id = Column("cf:id", primary_key=0, value_type=int)
-                   age = Column("cfattr:age", value_type=str)   
-                   age = Column("cfattr:age", value_type=int)         
-        @param primary_key: default is -1,the value means the location of primary key that start with 0,
-               you should set the value if you wanna the field value to be part of primary key and 
-               it will join by the delimiter sign of the Model variable '__primary_key_delimiter__'.
-        @param value_type: value type is a function you except to transfer the field value,
-               default is 'str' function      
-        '''               
-        if not field_name or not isinstance(field_name, str):
-            raise ColumnException("column name must be a string type and not null")
-        if not hasattr(value_type,'__call__'):
-            raise FunctionException("'%s' is not a function" % value_type)
-
-        self.field_name = field_name
-        self.value_type = value_type 
-        self.primary_key = primary_key
-                
-    def getValue(self, value):  
-        '''
-        get column value
-        '''
-        return  self.value_type(value) 
     
