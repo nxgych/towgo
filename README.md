@@ -42,10 +42,10 @@ python setup.py install
 （3）、THREAD_POOL_SIZE ：设定线程池大小；</br>
 （4）、SESSION ：session设置, 默认存储在本地缓存中，也可存储于redis中（需要配置 REDIS 数据库，并保证可正常使用）；</br>
 （5）、MAKO：mako模板设置；</br>
-（6）、TORNADO_USE_MAKO：tornado可支持mako模板，True:使用mako模板, False:使用自带模板，默认False；</br>
+（6）、TORNADO_USE_MAKO：tornado可支持mako模板，True:使用mako模板(需要配置MAKO), False:使用自带模板，默认False；</br>
 （7）、LOG ：日志配置；</br>
 （8）、APPS ：用于注册你的应用，类型为元组，例如demo中的app包；</br>
- 另外towgo中还内置了REDIS、CODIS、MYSQL、HBASE等数据库的连接配置和连接模块，你可以根据自己的需要添加配置。
+ 另外towgo中还内置了REDIS、CODIS、MYSQL、HBASE、ES等数据库的连接配置和连接模块，你可以根据自己的需要添加配置。
 
 ### 3、urls.py</br>
 在你的应用包中必须包含urls.py，在该文件中定义你的请求路由。</br>
@@ -131,7 +131,7 @@ towgo中添加了redis及codis(分布式redis)连接模块及api模块，可以�
     #from towgo.cache.db_cache import CodisCache   
 	cache = RedisCache()
 	cache.set('a',1) 
-	cache.conn.sadd('x','a')
+	cache.sadd('x','a')
 
 ### 7、utils模块</br>
 utils中加入了线程池、http request等工具类，可选择使用；</br>	

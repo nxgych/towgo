@@ -86,8 +86,8 @@ CODIS={
        }
 }
 
-#SQL pool
-SQL_POOL = {
+#sqldb pool
+SQLDB_POOL = {
             "mincached": 1,
             "maxcached": 5,
             "maxconnections": 100,
@@ -100,7 +100,7 @@ SQLALCHEMY = {
               "pool_recycle":3600,
               "max_overflow":10,
 }
-#mysql configuration
+#Mysql configuration
 MYSQL = {         
         "default":{
                  "host":"127.0.0.1",
@@ -112,15 +112,19 @@ MYSQL = {
         }       
 }
 
-#hbase configuration
+#Hbase configuration
 HBASE = {
-    "host":"127.0.0.1",
-    "port":9090     
+    "default":{
+        "host":"127.0.0.1",
+        "port":9090
+    }     
 }
 
-#elasticsearch configuration
+#Elasticsearch configuration
 ES = {
-    "nodes":[{"host":"127.0.0.1","port":9200}],
-    "sniffer_timeout":60,
-    "timeout":20
+    "default":{
+        "nodes":[{"host":"127.0.0.1","port":9200}],
+        "sniffer_timeout":60,
+        "timeout":20
+    }
 }

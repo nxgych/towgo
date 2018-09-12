@@ -17,18 +17,21 @@ from towgo.msetting import settings
                                                 
 class Connection(object):
     '''
-    elasticsearch pool connection class
+    Elasticsearch pool connection class
     '''    
-    _pool = None
+    _pool = {}
     
-    def __new__(cls, *args, **kwargs):
-        if cls._pool is None:
-            cls.connect(**kwargs)
-        return object.__new__(cls)
-    
+    def __new__(cls, conn_name='default', *args, **kwargs):
+        if conn_name not in cls._pool:
+            cls.connect(conn_name, **kwargs)
+        return object.__new__(cls, *args, **kwargs)
+
+    def __init__(self,conn_name='default', *args, **kwargs):
+        self.conn_name = conn_name
+        
     @classmethod
-    def connect(cls, **kwargs):
-        config = kwargs or settings.ES
+    def connect(cls, conn_name, **kwargs):
+        config = kwargs or settings.ES[conn_name]
         conn = Transport(
                          config['nodes'], 
                          connection_class=RequestsHttpConnection,
@@ -37,10 +40,14 @@ class Connection(object):
                          retry_on_timeout=True,
                          **config
                         )
-        cls._pool = conn.connection_pool
+        cls._pool[conn_name] = conn.connection_pool
               
     def get_conn(self):
-        return self._pool.get_connection()
+        return self._pool[self.conn_name].get_connection()
+    
+    @property
+    def conn(self):
+        return self.get_conn()
     
     def create_index(self, index, doc_type='',mappings={}):
         """
@@ -115,36 +122,46 @@ class Connection(object):
              
 class Connection2(object):
     
-    _conn = None
+    _conn = {}
      
-    def __new__(cls, *args, **kwargs):
-        if cls._conn is None:
-            cls.connect(**kwargs)
-        return object.__new__(cls)
+    def __new__(cls, conn_name='default', *args, **kwargs):
+        if conn_name not in cls._conn:
+            cls.connect(conn_name, **kwargs)
+        return object.__new__(cls, *args, **kwargs)
+
+    def __init__(self,conn_name='default', *args, **kwargs):
+        self.conn_name = conn_name
         
     @classmethod
-    def connect(cls, **kwargs):
-        config = kwargs or settings.ES
+    def connect(cls, conn_name, **kwargs):
+        config = kwargs or settings.ES[conn_name]
         hp_list = []
         for hp in config['nodes']:
             hp_list.append("%s:%d" % (hp['host'], hp['port']))
             
-        cls._conn = Elasticsearch(hp_list, **config)    
+        cls._conn[conn_name] = Elasticsearch(hp_list, **config)    
 
+    def get_conn(self):
+        return self._conn[self.conn_name]
+    
+    @property
+    def conn(self):
+        return self.get_conn()
+    
     def create_index(self, index_name, doc_type='',mappings={}):
         """
         create index and put mapping
         """
-        self._conn.indices.create(index=index_name)
+        self.conn.indices.create(index=index_name)
         if doc_type and mappings:
-            self._conn.indices.put_mapping(doc_type, mappings, index_name)
+            self.conn.indices.put_mapping(doc_type, mappings, index_name)
             
     def delete_index(self, index):   
         """
         delete index
         """ 
         try:
-            return self._conn.indices.delete(index=index)    
+            return self.conn.indices.delete(index=index)    
         except NotFoundError:
             return None    
                                 
@@ -152,7 +169,7 @@ class Connection2(object):
         """
         search documents
         """
-        ret = self._conn.search(index, doc_type, body) 
+        ret = self.conn.search(index, doc_type, body) 
         return ret['hits']['hits']
             
     def get(self, index, doc_type, doc_id):
@@ -160,7 +177,7 @@ class Connection2(object):
         get document
         """
         try:
-            ret = self._conn.get(index, doc_id, doc_type) 
+            ret = self.conn.get(index, doc_id, doc_type) 
             return ret  
         except NotFoundError:
             return None          
@@ -169,14 +186,14 @@ class Connection2(object):
         """
         insert document
         """
-        return self._conn.index(index=index,doc_type=doc_type,id=doc_id,body=body)      
+        return self.conn.index(index=index,doc_type=doc_type,id=doc_id,body=body)      
     
     def delete(self, index, doc_type, doc_id):   
         '''
         delete document
         ''' 
         try:
-            return self._conn.delete(index=index,doc_type=doc_type,id=doc_id) 
+            return self.conn.delete(index=index,doc_type=doc_type,id=doc_id) 
         except NotFoundError:
             return None  
         

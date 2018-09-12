@@ -90,23 +90,22 @@ class SqlConn(SqlFormat):
     
     _conn = {}
     
-    def __new__(cls, conn_name='default', table="", *args, **kwargs):
+    def __new__(cls, conn_name='default', *args, **kwargs):
         if conn_name not in cls._conn:
             cls.connect(conn_name, **kwargs)
         return object.__new__(cls, *args, **kwargs)
 
-    def __init__(self,conn_name='default', table="", *args, **kwargs):
+    def __init__(self,conn_name='default', *args, **kwargs):
+        table = args[0]
         assert table != ""
+        
         self.conn_name = conn_name
         self.table = table
                     
     @classmethod
     def connect(cls, conn_name, **kwargs):
-        config = kwargs
-        if not config:
-            config = {}
-            config.update(settings.MYSQL[conn_name])
-            config.update(settings.SQL_POOL)
+        config = kwargs or settings.MYSQL[conn_name]            
+        config.update(settings.SQLDB_POOL)
             
         pool = PooledDB(creator=MySQLdb, 
                         mincached=config['mincached'], maxcached=config['maxcached'],

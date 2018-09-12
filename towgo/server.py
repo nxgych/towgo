@@ -9,6 +9,9 @@ Created on 2017年1月9日
 from __future__ import absolute_import
 
 import os, sys
+from os import environ
+from sys import executable
+from socket import AF_INET  
 from multiprocessing import cpu_count
 from abc import ABCMeta,abstractmethod
 
@@ -141,21 +144,12 @@ class BaseServer(object):
     
     __metaclass__ = ABCMeta   
 
-    def __init__(self, process_num=0, init_method=None, **kwargs):
-        '''
-        @param process_num: 启动进程数
-        @param init_method: init method
-        '''
+    def __init__(self):
         #设置环境变量
         os.environ.setdefault(settings._SETTINGS_MODULE_ENVIRON, options.settings) 
-
-        if init_method is not None:
-            if not hasattr(init_method,'__call__'):
-                raise FunctionException("'%s' is not a function" % init_method)
                         
-        self.process_num = process_num
-        self.init_method = init_method  
-        self.kwargs = kwargs
+        self.process_num = cpu_count()
+        self.init_method = None
     
     @abstractmethod    
     def start(self):
@@ -169,8 +163,7 @@ class BaseServer(object):
         '''
         set process num
         '''
-        if num >= 0 and num <= cpu_count():
-            self.process_num = num
+        self.process_num = min(num, cpu_count())
                   
     def setInitMethod(self, method):
         '''
@@ -204,7 +197,19 @@ class TornadoTcpServer(BaseServer):
         
         s.close()       
     """
-    
+
+    def __init__(self, **kwargs):
+        super(TornadoTcpServer, self).__init__()
+        self.server_frame = "tornado"
+        self.kwargs = kwargs
+                    
+    def start(self):
+        '''
+        start server
+        '''
+        server = TornadoTCPServer(**self.kwargs)
+        self._start(server)  
+
     def _start(self, server):
         if settings.MULTI_PROCESS:
             server.bind(options.port)
@@ -219,14 +224,7 @@ class TornadoTcpServer(BaseServer):
             
         self.initialize()
         IOLoop.instance().start() 
-                    
-    def start(self):
-        '''
-        start server
-        '''
-        server = TornadoTCPServer(**self.kwargs)
-        self._start(server)  
-
+        
 class TornadoHttpServer(TornadoTcpServer):
     """
     @server:
@@ -234,7 +232,7 @@ class TornadoHttpServer(TornadoTcpServer):
         server.setInitMethod(func)
         server.start()     
     """
-    
+        
     def start(self):
         '''
         start server
@@ -270,19 +268,40 @@ class TwistedTcpServer(BaseServer):
         s.close()       
     """
     
-    def _start(self, factory):
-        log.startLogging(sys.stdout)
-        reactor.suggestThreadPoolSize(settings.THREAD_POOL_SIZE)
-        reactor.callWhenRunning(self.initialize)   
-        reactor.listenTCP(options.port, factory)
-        reactor.run()
+    def __init__(self, *args, **kwargs):
+        super(TwistedTcpServer, self).__init__()
+        self.server_frame = "twisted"
+        self.factory = TwistedServerFactory(*args, **kwargs)
                     
     def start(self):
         '''
         start server
         '''
-        factory = TwistedServerFactory(**self.kwargs)
-        self._start(factory)      
+        log.startLogging(sys.stdout)
+        reactor.suggestThreadPoolSize(settings.THREAD_POOL_SIZE)
+        reactor.callWhenRunning(self.initialize)
+        
+        if settings.MULTI_PROCESS:
+            args = sys.argv
+            fd = int(args[-1]) if args[-1].isdigit() else None
+            
+            if fd is None:
+                sargs = [arg for arg in args[1:] if arg.startswith('--')]
+                # Create a new listening port and several other processes to help out.                                                                     
+                port = reactor.listenTCP(options.port, self.factory)
+                for _ in range(self.process_num):
+                    reactor.spawnProcess(
+                            None, executable, [executable, args[0]] + sargs + [str(port.fileno())],
+                        childFDs={0: 0, 1: 1, 2: 2, port.fileno(): port.fileno()},
+                        env=environ)
+            else:
+                # Another process created the port, just start listening on it.                                                                            
+                port = reactor.adoptStreamPort(fd, AF_INET, self.factory)
+        else:
+            reactor.listenTCP(options.port, self.factory) 
+                   
+        #run    
+        reactor.run()   
 
 class TwistedHttpServer(TwistedTcpServer):      
     """
@@ -292,10 +311,8 @@ class TwistedHttpServer(TwistedTcpServer):
         server.setInitMethod(func)
         server.start()     
     """
-    
-    def start(self):
-        '''
-        start server    
-        '''
-        factory = TwistedSite()
-        self._start(factory)   
+
+    def __init__(self, *args, **kwargs):
+        super(TwistedHttpServer, self).__init__(*args, **kwargs)
+        self.factory = TwistedSite()
+        
