@@ -6,11 +6,11 @@ Created on 2017年1月18日
 '''
 
 import traceback
-from towgo.handler import TornadoHttpHandler
+from towgo.handler import TwistedHttpHandler #TornadoHttpHandler
 
 from towgo.log.log_util import CommonLog
 
-class TestHandler(TornadoHttpHandler):    
+class TestHandler(TwistedHttpHandler):    
     """
     test
     overwrite '_post' or '_get'
