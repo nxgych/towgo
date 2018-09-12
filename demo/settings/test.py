@@ -13,18 +13,11 @@ PROJECT_PATH = os.path.dirname(os.path.dirname(__file__))
 MULTI_PROCESS = True
 THREAD_POOL_SIZE = 50
 
-#debug
-DEBUG = False
-
 #static path
 STATIC_PATH = os.path.join(PROJECT_PATH,'static')
 
 #templates path
 TEMPLATE_PATH = os.path.join(PROJECT_PATH,'templates')
-
-#xsrf configuration
-XSRF_COOKIES = False
-COOKIE_SECRET = "TOWGO_COOKIE_SECRET"
 
 #session configuration
 SESSION = {
@@ -95,17 +88,4 @@ MYSQL = {
                  "database":"dbname",
                  "query":{'charset':'utf8'}
         }       
-}
-
-#hbase configuration
-HBASE = {
-    "host":"127.0.0.1",
-    "port":9090     
-}
-
-#elasticsearch configuration
-ES = {
-    "nodes":[{"host":"127.0.0.1","port":9200}],
-    "sniffer_timeout":60,
-    "timeout":20
 }
