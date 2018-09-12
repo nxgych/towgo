@@ -47,8 +47,8 @@ class TornadoApp(Application):
             template_path=settings.TEMPLATE_PATH,
             static_path=settings.STATIC_PATH,
             cookie_secret=settings.COOKIE_SECRET,
-            xsrf_cookies=settings.XSRF_COOKIES,
-            debug=settings.DEBUG
+            xsrf_cookies=settings.TORNADO_XSRF_COOKIES,
+            debug=settings.TORNADO_DEBUG
         )
         app_settings.update(kwargs)     
         super(TornadoApp, self).__init__(handlers=self.load_urls(), **app_settings)     
@@ -103,7 +103,7 @@ class TwistedSite(object):
     twisted http site
     '''
     
-    def __new__(cls, *args, **kwargs):
+    def __new__(cls):
         return cls.load_urls()
     
     @staticmethod
@@ -116,7 +116,7 @@ class TwistedSite(object):
                 root.putChild(path, handler)
         return server.Site(root)
 
-class TwistedServerFactory(ServerFactory):
+class TwistedTCPFactory(ServerFactory):
     '''
     twisted tcp server factory
     '''
@@ -214,7 +214,7 @@ class TornadoTcpServer(BaseServer):
         if settings.MULTI_PROCESS:
             server.bind(options.port)
             server.start(self.process_num)
-            for advanced_port in settings.ADVANCED_SERVER_PORT:
+            for advanced_port in settings.TORNADO_ADVANCED_SERVER_PORT:
                 # bind more port if set
                 tornado.process.fork_processes(self.process_num)
                 sockets = bind_sockets(advanced_port)
@@ -271,7 +271,7 @@ class TwistedTcpServer(BaseServer):
     def __init__(self, *args, **kwargs):
         super(TwistedTcpServer, self).__init__()
         self.server_frame = "twisted"
-        self.factory = TwistedServerFactory(*args, **kwargs)
+        self.factory = TwistedTCPFactory(*args, **kwargs)
                     
     def start(self):
         '''

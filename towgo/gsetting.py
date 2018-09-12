@@ -24,14 +24,13 @@ STATIC_PATH = os.path.join(PROJECT_PATH,'static')
 TEMPLATE_PATH = os.path.join(PROJECT_PATH,'templates')
 
 #tornado advanced port
-ADVANCED_SERVER_PORT = ()
+TORNADO_ADVANCED_SERVER_PORT = ()
 
-#tornado debug switch
-DEBUG = False
-
-#tornado xsrf configuration
-XSRF_COOKIES = False
 COOKIE_SECRET = "TOWGO_COOKIE_SECRET"
+#tornado xsrf configuration
+TORNADO_XSRF_COOKIES = False
+#tornado debug switch
+TORNADO_DEBUG = False
 
 #default is False. True:use mako template, False:use tornado template
 TORNADO_USE_MAKO = False
