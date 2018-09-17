@@ -81,7 +81,11 @@ CODIS={
        "default":{
            "zookeeper_address":"127.0.0.1:2181", #zookeeper 地址
            "zookeeper_path":"/jodis/cache", 
-           "db":0   #redis db
+           
+           "pool":False,
+           "db":0,
+           "password":"",
+           "max_connections":100  
        }
 }
 

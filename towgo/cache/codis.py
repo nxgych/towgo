@@ -24,11 +24,15 @@ class Connection(object):
         @param param: 
                zookeeper_address: zookeeper address
                zookeeper_path: codis proxy path
+               
+               pool: use redis pool if True, default is False
                db: redis db default is 0
+               max_connections: max connections
         '''       
         self.__zkAddr = kwargs.get('zookeeper_address', '127.0.0.1:2181')
         self.__proxyPath = kwargs.get('zookeeper_path', '/jodis/cache')
         
+        self.__pool = kwargs.get('pool', False)
         self.__db = kwargs.get('db', 0)
         self.__passwd = kwargs.get('password', None)
         self.__max_connections = kwargs.get('max_connections', None)
@@ -55,12 +59,24 @@ class Connection(object):
                 decoded = json.loads(proxyinfo[0])
                 if decoded["state"] == "online":
                     self.__proxylist.append(decoded)
-            for proxyinfo in self.__proxylist:
-                proxyip = proxyinfo["addr"].split(':')[0]
-                proxyport = proxyinfo["addr"].split(':')[1]
-                conn = redis.Redis(host=proxyip, port=int(proxyport), db=self.__db, 
-                                   password=self.__passwd, max_connections=self.__max_connections)
-                self.__connPool.append(conn)
+            
+            if self.__pool:        
+                for proxyinfo in self.__proxylist:
+                    proxyip = proxyinfo["addr"].split(':')[0]
+                    proxyport = proxyinfo["addr"].split(':')[1]
+                    conn = redis.Redis(
+                        connection_pool=redis.ConnectionPool(
+                            host=proxyip, port=int(proxyport), db=self.__db, 
+                            password=self.__passwd, max_connections=self.__max_connections)
+                    )
+                    self.__connPool.append(conn)
+            else:
+                for proxyinfo in self.__proxylist:
+                    proxyip = proxyinfo["addr"].split(':')[0]
+                    proxyport = proxyinfo["addr"].split(':')[1]
+                    conn = redis.Redis(host=proxyip, port=int(proxyport), db=self.__db, 
+                                       password=self.__passwd, max_connections=self.__max_connections)
+                    self.__connPool.append(conn)          
         except:
             raise
         finally:
