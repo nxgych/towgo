@@ -56,16 +56,16 @@ class TornadoConnection(object):
         try:
             # delimiter : \0
             self._stream.read_until("\0", self.handle_request)
-        except StreamClosedError,e:
-            raise e
+        except StreamClosedError:
+            raise
 
     def write(self, message):
         try:
             self._stream.write(message)
-        except StreamClosedError, e:
+        except StreamClosedError:
             logger.warn("Stream closed!")    
-        except Exception, e:
-            raise e
+        except Exception:
+            raise
         
     @gen.coroutine
     def handle_request(self, data):

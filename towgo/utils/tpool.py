@@ -90,7 +90,7 @@ class TPool(object):
             
     def _createWorker(self, thread_num):
         init_num = min(thread_num, self._max_threads)
-        for _ in xrange(init_num):
+        for _ in range(init_num):
             self._threads.append(_Worker(self))  
 
     def _addTask(self, task):  

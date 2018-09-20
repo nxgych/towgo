@@ -85,5 +85,5 @@ def ip_str(ip):
     '''
     if not (isinstance(ip, int) or isinstance(ip, long)):
         raise TypeError("'ip' must be a integer or long type")
-    fun = lambda x: '.'.join([str(x/(256**i)%256) for i in xrange(3,-1,-1)])
+    fun = lambda x: '.'.join([str(x/(256**i)%256) for i in range(3,-1,-1)])
     return fun(int(ip))

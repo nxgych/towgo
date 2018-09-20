@@ -27,7 +27,7 @@ def operate(func):
                     self.check_table(conn)
                     self.table = conn.table(self.table_name)  
                     return func(self, *args, **kwargs)   
-            except Exception, e:
+            except Exception as e:
                 exception = e  
         raise exception                  
     return _deco
