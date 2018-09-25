@@ -119,7 +119,10 @@ MYSQL = {
 HBASE = {
     "default":{
         "host":"127.0.0.1",
-        "port":9090
+        "port":9090,
+        
+        "timeout":None,
+        "pool_size":50,
     }     
 }
 

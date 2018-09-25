@@ -65,7 +65,7 @@ class Connection(object):
         
     @classmethod
     def connect(cls, conn_name="default", **kwargs):
-        size = kwargs.pop('size', 10)
+        size = kwargs.pop('pool_size', 10)
         cls._conn[conn_name] = happybase.ConnectionPool(size=size, **kwargs)
     
     @property    
