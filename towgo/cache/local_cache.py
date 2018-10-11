@@ -26,7 +26,7 @@ class LocalCache(object):
     def __getitem__(self, key):
         return self._store.get(key)
     
-    def __setitem__(self, key, (value, expire)):
+    def __setitem__(self, key, value, expire=0):
         self._store[key] = value, expire
         
     def __delitem__(self, key):    
