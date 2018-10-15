@@ -56,7 +56,7 @@ class Connection(object):
             for proxy in proxynamelist:
                 self.__zk.start()
                 proxyinfo = self.__zk.get(self.__proxyPath+'/'+proxy,watch=self.__watcher)
-                decoded = json.loads(proxyinfo[0])
+                decoded = json.loads(proxyinfo[0].decode('UTF8'))
                 if decoded["state"] == "online":
                     self.__proxylist.append(decoded)
             
@@ -75,7 +75,8 @@ class Connection(object):
                     proxyip = proxyinfo["addr"].split(':')[0]
                     proxyport = proxyinfo["addr"].split(':')[1]
                     conn = redis.Redis(host=proxyip, port=int(proxyport), db=self.__db, 
-                                       password=self.__passwd, max_connections=self.__max_connections)
+                                       password=self.__passwd, max_connections=self.__max_connections,
+                                       decode_responses=True)
                     self.__connPool.append(conn)          
         except:
             raise

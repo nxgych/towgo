@@ -80,7 +80,7 @@ class TornadoTCPServer(TCPServer):
     
     def __new__(cls, *args, **kwargs):
         TornadoConnection.handler_mappings = cls.load_urls()
-        return TCPServer.__new__(cls, *args, **kwargs)
+        return TCPServer.__new__(cls)
 
     def handle_stream(self, stream, address):
         TornadoConnection(address=address, stream=stream, io_loop=self.io_loop)   
@@ -113,7 +113,7 @@ class TwistedSite(object):
         for a in apps:
             m = __import__("%s.urls" % a, globals={}, locals={}, fromlist=['urls'])
             for path, handler in m.urls:
-                root.putChild(path, handler)
+                root.putChild(path.encode('UTF8'), handler)
         return server.Site(root)
 
 class TwistedTCPFactory(ServerFactory):

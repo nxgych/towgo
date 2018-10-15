@@ -6,13 +6,15 @@ Created on 2017/01/09
 @author: shuai.chen
 '''
 
+from __future__ import absolute_import
+
 import os
 import warnings
 
 from tornado.options import options
 from tornado.util import import_object
 
-import gsetting
+from . import gsetting
 
 SETTINGS_MODULE_ENVIRON = gsetting._SETTINGS_MODULE_ENVIRON
 

@@ -40,15 +40,15 @@ class _Worker(threading.Thread):
         self.pool = pool   
         self.busy = False  
         
-        self._started = False  
+        self._has_started = False  
         self._event = None  
 
     def work(self):  
-        if self._started is True:  
+        if self._has_started is True:  
             if self._event is not None and not self._event.isSet():  
                 self._event.set()  
         else:  
-            self._started = True  
+            self._has_started = True  
             self.start()  
   
     def run(self):  

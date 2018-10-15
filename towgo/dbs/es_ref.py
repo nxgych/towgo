@@ -24,7 +24,7 @@ class Connection(object):
     def __new__(cls, conn_name='default', *args, **kwargs):
         if conn_name not in cls._pool:
             cls.connect(conn_name, **kwargs)
-        return object.__new__(cls, *args, **kwargs)
+        return object.__new__(cls)
 
     def __init__(self,conn_name='default', *args, **kwargs):
         self.conn_name = conn_name
@@ -127,7 +127,7 @@ class Connection2(object):
     def __new__(cls, conn_name='default', *args, **kwargs):
         if conn_name not in cls._conn:
             cls.connect(conn_name, **kwargs)
-        return object.__new__(cls, *args, **kwargs)
+        return object.__new__(cls)
 
     def __init__(self,conn_name='default', *args, **kwargs):
         self.conn_name = conn_name

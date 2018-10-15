@@ -215,9 +215,9 @@ class DiffExpireDict(_Edict):
                 del self[key]
                 raise KeyError(key)
     
-    def __setitem__(self, key, value, expire=0):
+    def __setitem__(self, key, value_expire):
         with self.lock:
-            expire = max(0, expire)
+            value, expire = value_expire
             super(DiffExpireDict, self).__setitem__(key, (value, int(time.time()), expire))    
 
     def _get(self, key):    

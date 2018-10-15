@@ -6,40 +6,48 @@ Created on 2017年1月9日
 @author: shuai.chen
 '''
 
+import sys
+
+PY2 = sys.version_info[0] ==2
+if PY2:
+    import httplib
+    import urllib2
+else:
+    import http.client as httplib
+    import urllib.request as urllib2
+    
 import json
-import httplib
-import urllib2
 import re
+from six import iteritems
 
 def get_request_url(path, params={}):
     '''
     generate request url
     '''
-    p = "&".join(["%s=%s" % (k,v) for k,v in params.iteritems()])
+    p = "&".join(["%s=%s" % (k,v) for k,v in iteritems(params)])
     return "%s&%s"%(path,p) if "?" in path else "%s?%s"%(path,p) if p else path
 
-def httplib_request(domain, path, method="GET", use_ssl=False, params={}, headers={}, timeout=10):
+def httplib_request(host, port, path, method="GET", params={}, headers={}, timeout=10, use_ssl=False):
     '''
     http/https request
-    @param domain: http:port  or domain
     @param path: request path
     @param method: GET OR POST
-    @param use_ssl: https
     @param params: reques params
     @param headers: request headers     
+    @param use_ssl: https if True else http
     ''' 
     http_client = None
     try:
         if use_ssl:
-            http_client = httplib.HTTPSConnection(domain, timeout)
+            http_client = httplib.HTTPSConnection(host, port, timeout)
         else:
-            http_client = httplib.HTTPConnection(domain, timeout)    
+            http_client = httplib.HTTPConnection(host, port, timeout)    
         
         if method.upper() == "GET":
             req_url = get_request_url(path,params) 
             http_client.request("GET", req_url, headers=headers)           
         else:    
-            http_client.request("POST", path, json.dumps(params), headers)
+            http_client.request("POST", path, json.dumps(params).encode('UTF8'), headers)
 
         response = http_client.getresponse()
         return response.read()                     
@@ -60,7 +68,7 @@ def urllib_request(url, method='GET', params={}, headers={}):
         req_url = get_request_url(url,params) 
         req = urllib2.Request(req_url,headers=headers)
     else:
-        req = urllib2.Request(url,json.dumps(params),headers)
+        req = urllib2.Request(url, json.dumps(params).encode('UTF8'), headers)
      
     if req:         
         response = urllib2.urlopen(req)

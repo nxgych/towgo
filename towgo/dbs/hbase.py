@@ -10,8 +10,10 @@ HBASE ORM based of happybase
 
 
 import functools
-import happybase
 from abc import ABCMeta
+
+import happybase
+from six import iteritems
   
 
 def operate(func):
@@ -33,7 +35,7 @@ def operate(func):
     return _deco
 
 
-class WhbaseExceotion(Exception):  
+class HbaseException(Exception):  
     pass 
 
 class Connection(object):
@@ -49,17 +51,17 @@ class Connection(object):
     def __new__(cls, conn_name="default", *args, **kwargs):
         if conn_name not in cls._conn:
             cls.connect(conn_name, **kwargs)
-        return object.__new__(cls, *args, **kwargs)
+        return object.__new__(cls)
     
     def __init__(self, conn_name="default", *args, **kwargs):
         '''
         @param conn_name: hbase connection name 
         '''
         table_name, cf = args[0], args[1]
-        assert table_name != ""
+        assert table_name != b""
         
         self.conn_name = conn_name
-        self.table_name = table_name
+        self.table_name = table_name.encode("UTF8")
         
         self.cf = self._getColumnFamilyDefault(cf)
         
@@ -87,8 +89,8 @@ class Connection(object):
         get default column family
         '''
         if not cf:
-            raise WhbaseExceotion('Unknown column family')      
-        return '%s:' % cf if not cf.endswith(':') else cf               
+            raise HbaseException('Unknown column family')      
+        return b'%s:' % cf if not cf.endswith(b':') else cf               
     
     @operate
     def get(self, key):
@@ -143,12 +145,12 @@ class Column(object):
         @param value_type: value type is a function you except to transfer the field value,
                default is 'str' function      
         '''               
-        if not field_name or not isinstance(field_name, str):
-            raise WhbaseExceotion("column name must be a string type and not null")
+        if not field_name:
+            raise HbaseException("column name must not be null")
         if not hasattr(value_type,'__call__'):
-            raise WhbaseExceotion("'%s' is not a function" % value_type)
+            raise HbaseException("'%s' is not a function" % value_type)
 
-        self.field_name = field_name
+        self.field_name = field_name.encode("UTF8")
         self.value_type = value_type 
         self.primary_key = primary_key
                 
@@ -203,17 +205,17 @@ class Model(object):
     '''
     table name, you must define this variable in your model
     '''   
-    __table_name__ = ''  
+    __table_name__ = b''  
     
     '''
     column family, default is 'cf:', you can redefine this variable in your model
     '''
-    __column_family__ = 'cf:'   # column family default is 'cf:'
+    __column_family__ = b'cf:'   # column family default is 'cf:'
     
     '''
     delemiter of primary keys, default is '_', you can redefine this variable in your model
     '''
-    __primary_key_delimiter__ = '_'
+    __primary_key_delimiter__ = b'_'
     
     _primary_keys = []
     _columns = {}
@@ -221,7 +223,7 @@ class Model(object):
     def __new__(cls, *args, **kwargs):
         if len(cls._columns) <= 0:
             pkl = []
-            for k,v in cls.__dict__.iteritems():
+            for k,v in iteritems(cls.__dict__):
                 if isinstance(v,Column):
                     cls._columns[k] = v.field_name
                     if v.primary_key >= 0 :
@@ -229,7 +231,7 @@ class Model(object):
                         
             pkl.sort(key = lambda item:item[1])            
             cls._primary_keys = [k for k,_ in pkl]  
-        return object.__new__(cls, *args, **kwargs)
+        return object.__new__(cls)
     
     def __init__(self, conn=None):   
         '''
@@ -253,8 +255,8 @@ class Model(object):
         get field name
         '''
         field_name = self._columns.get(fname, fname)
-        if ':' not in field_name:
-            return '%s%s' % (self._conn.cf,field_name)
+        if b':' not in field_name:
+            return b'%s%s' % (self._conn.cf,field_name)
         return field_name
         
     def _setKeyByPrimaryKey(self, kwargs):  
@@ -266,7 +268,7 @@ class Model(object):
             for k in self._primary_keys:
                 v = kwargs.get(k)
                 if not v:
-                    raise WhbaseExceotion("Value of primary key cannot be '%s'" % v)
+                    raise HbaseException("Value of primary key cannot be '%s'" % v)
                 primary_key_values.append(v)
 
             if len(primary_key_values) > 0:
@@ -283,8 +285,8 @@ class Model(object):
         set primary key
         you can set the object key follow you special value with this method directly
         '''
-        if not key or not isinstance(key,str):  
-            raise WhbaseExceotion("Value of primary key must be a string type and not null")   
+        if not key:  
+            raise HbaseException("Value of primary key must not be null")   
         self._key = key   
         
     @property
@@ -299,7 +301,7 @@ class Model(object):
         '''
         object as dict
         '''
-        return {k:v for k,v in self.__dict__.iteritems() if k in self._columns} 
+        return {k:v for k,v in iteritems(self.__dict__) if k in self._columns} 
             
     @classmethod
     def get(cls, key):
@@ -327,7 +329,7 @@ class Model(object):
         ''' create object '''
         class_dict = cls.__dict__
         values = {}
-        for k,v in data.iteritems():
+        for k,v in iteritems(data):
             ck = k
             cv = class_dict.get(k)
             if isinstance(cv, Column):
@@ -347,7 +349,7 @@ class Model(object):
         '''
         instance = cls(conn)
         class_dict = cls.__dict__
-        for k,_ in instance._columns.iteritems():
+        for k, _ in iteritems(instance._columns):
             v = class_dict.get(k)
             if not v:
                 continue
@@ -366,9 +368,9 @@ class Model(object):
         ''' 
         self._setKeyByPrimaryKey({k:kwargs.get(k) for k in self._primary_keys})  
         if not self._key:
-            raise WhbaseExceotion("Value of primary key cannot be '%s'" % self._key)   
+            raise HbaseException("Value of primary key cannot be '%s'" % self._key)   
                   
-        values = {self._getFieldName(k):str(v) for k,v in kwargs.iteritems() if k in self._columns}
+        values = {self._getFieldName(k):str(v) for k,v in iteritems(kwargs) if k in self._columns}
         self._conn.put(self._key, value=values)    
 
     def save(self):
@@ -378,9 +380,9 @@ class Model(object):
         columns = self.__dict__
         self._setKeyByPrimaryKey({k:columns.get(k) for k in self._primary_keys})
         if not self._key:
-            raise WhbaseExceotion("Value of primary key cannot be '%s'" % self._key)  
+            raise HbaseException("Value of primary key cannot be '%s'" % self._key)  
         
-        values = {self._getFieldName(k):str(v) for k,v in columns.iteritems() if k in self._columns}            
+        values = {self._getFieldName(k):str(v) for k,v in iteritems(columns) if k in self._columns}            
         self._conn.put(self._key, value=values)
         
     def delete(self, columns=[]):
@@ -390,4 +392,4 @@ class Model(object):
         if self._key:
             cols = [self._getFieldName(c) for c in columns]
             self._conn.delete(self._key, cols)
-    
+            

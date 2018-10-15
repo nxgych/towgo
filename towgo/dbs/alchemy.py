@@ -6,6 +6,8 @@ Created on 2017年1月9日
 @author: shuai.chen
 '''
 
+import sys
+
 from sqlalchemy import create_engine
 from sqlalchemy.orm import sessionmaker
 from sqlalchemy.engine.url import URL
@@ -20,6 +22,12 @@ from sqlalchemy import event
 from sqlalchemy.pool import Pool
 
 from towgo.msetting import settings
+
+PY2 = sys.version_info[0] == 2
+if PY2:
+    DRIVERNAME = 'mysql+mysqldb'  
+else:
+    DRIVERNAME = 'mysql+pymysql'
 
 class Connection(object):
     '''
@@ -38,7 +46,7 @@ class Connection(object):
     @classmethod
     def connect(cls, conn_name, **kwargs):
         configs = kwargs or settings.MYSQL[conn_name]
-        conn_url = URL('mysql+mysqldb',**configs)
+        conn_url = URL(DRIVERNAME, **configs)
         alchemy_args = settings.SQLALCHEMY
         cls._engine[conn_name] = create_engine(conn_url, poolclass=QueuePool,**alchemy_args)
                

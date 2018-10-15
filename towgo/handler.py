@@ -51,7 +51,7 @@ class TornadoHttpHandler(RequestHandler):
 
     _lookup = None
     if settings.TORNADO_USE_MAKO:
-        _lookup = TemplateLookup(input_encoding='utf-8', output_encoding='utf-8',
+        _lookup = TemplateLookup(input_encoding='UTF8', output_encoding='UTF8',
                                  encoding_errors='replace', **settings.MAKO)
     
     
@@ -118,7 +118,7 @@ class TornadoHttpHandler(RequestHandler):
         Renders the mako template with the given arguments as the response
         '''         
         template = self._lookup.get_template(template_name) 
-        return template.render_unicode(**kwargs).encode('utf-8','replace')           
+        return template.render_unicode(**kwargs).encode('UTF8','replace')           
 
     def render(self, template_name, **kwargs):
         if self._lookup is not None:
@@ -180,7 +180,7 @@ class TwistedHttpHandler(Resource):
                 return 'hello, world!'    
     '''
         
-    _lookup = TemplateLookup(input_encoding='utf-8', output_encoding='utf-8',
+    _lookup = TemplateLookup(input_encoding='UTF8', output_encoding='UTF8',
                              encoding_errors='replace', **settings.MAKO)
     
     #session register
@@ -203,11 +203,11 @@ class TwistedHttpHandler(Resource):
                 
     def write(self, context):
         '''write result'''
-        self.request.write(context)  
+        self.request.write(context.encode('UTF8'))  
         self.request.finish()   
         
     def error(self, failure):   
-        self.request.write(str(failure))  
+        self.request.write(failure.__repr__().encode('UTF8'))  
         logger.error(str(failure))
         self.request.finish()  
 
@@ -269,7 +269,7 @@ class TwistedHttpHandler(Resource):
         Renders the mako template with the given arguments as the response
         '''
         template = self._lookup.get_template(template_name) 
-        return template.render_unicode(**kwargs).encode('utf-8','replace')
+        return template.render_unicode(**kwargs).encode('UTF8','replace')
         
     def get_argument(self, name, default=None):   
         arg = self.request.args.get(name) 

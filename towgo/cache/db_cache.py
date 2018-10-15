@@ -8,10 +8,16 @@ Created on 2017年2月16日
 
 from __future__ import absolute_import
 
-from abc import ABCMeta
+import sys
 
+PY2 = sys.version_info[0] == 2
+if PY2:
+    import cPickle as pickle
+else: 
+    import pickle
+
+from abc import ABCMeta       
 import redis
-import cPickle as pickle
 
 from .codis import Connection
 from towgo.msetting import settings
@@ -95,7 +101,7 @@ class RedisCache(_Cache):
         return super(RedisCache, cls).__new__(cls)
     
     def __init__(self,conn_name='default', *args, **kwargs):
-        self.conn = redis.Redis(connection_pool = self._pools[conn_name])  
+        self.conn = redis.Redis(connection_pool=self._pools[conn_name], decode_responses=True)  
 
     @classmethod
     def connect(cls, conn_name, **kwargs):

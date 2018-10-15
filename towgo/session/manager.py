@@ -10,6 +10,7 @@ import uuid
 import hmac
 import hashlib
 import json
+from six import iteritems
 
 DEFAULT_STORAGE = "towgo.cache.local_cache.LocalCache"
 DEFAULT_SECRET = "TOWGO_SESSION_SECRET"
@@ -30,7 +31,7 @@ class Session(SessionData):
             current_session = session_manager.get(request_handler)
         except InvalidSessionException:
             current_session = session_manager.get()
-        for key, data in current_session.iteritems():
+        for key, data in iteritems(current_session):
             self[key] = data
         self.session_id = current_session.session_id
         self.hmac_key = current_session.hmac_key
@@ -58,7 +59,7 @@ class SessionManager(object):
     def _fetch(self, session_id):
         try:
             session_data = raw_data = self.cache.get(session_id)
-            if raw_data != None:
+            if raw_data is not None:
                 self.cache.setex(session_id, raw_data, self.session_timeout)
                 session_data = json.loads(raw_data)
             if type(session_data) == type({}):
@@ -73,8 +74,8 @@ class SessionManager(object):
             session_id = None
             hmac_key = None
         else:
-            session_id = request_handler.get_secure_cookie("session_id")
-            hmac_key = request_handler.get_secure_cookie("verification")
+            session_id = request_handler.get_secure_cookie("session_id").decode('UTF8')
+            hmac_key = request_handler.get_secure_cookie("verification").decode('UTF8')
         if session_id == None:
             session_exists = False
             session_id = self._generate_id()
@@ -87,7 +88,7 @@ class SessionManager(object):
         session = SessionData(session_id, hmac_key)
         if session_exists:
             session_data = self._fetch(session_id)
-            for key, data in session_data.iteritems():
+            for key, data in iteritems(session_data):
                 session[key] = data
         return session
                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                               
@@ -101,11 +102,11 @@ class SessionManager(object):
         self.cache.delete(session_id)    
         
     def _generate_id(self):
-        new_id = hashlib.sha256("{0}{1}".format(self.secret,str(uuid.uuid4())))
+        new_id = hashlib.sha256("{0}{1}".format(self.secret,str(uuid.uuid4())).encode('UTF8'))
         return new_id.hexdigest()
     
     def _generate_hmac(self, session_id):
-        return hmac.new(session_id, self.secret, hashlib.sha256).hexdigest()
+        return hmac.new(session_id.encode('UTF8'), self.secret.encode('UTF8'), hashlib.sha256).hexdigest()
     
 class InvalidSessionException(Exception):
     pass

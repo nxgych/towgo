@@ -8,13 +8,20 @@ Created on 2017年4月17日
 
 #self-define python mysql orm
 
+import sys
 import datetime
-import types
 from abc import ABCMeta
 import functools
+from six import iteritems
 
-import MySQLdb  
-from MySQLdb.cursors import DictCursor 
+PY2 = sys.version_info[0] == 2
+if PY2:
+    import MySQLdb as pymysql
+    from MySQLdb.cursors import DictCursor 
+else:
+    import pymysql
+    from pymysql.cursors import DictCursor
+        
 from DBUtils.PooledDB import PooledDB  
  
 from towgo.msetting import settings
@@ -27,7 +34,7 @@ class SqlFormat(object):
         ''' get value '''
         format_string = functools.partial(str.format, "'{0}'")
         
-        if type(value) is types.StringType or type(value) is types.UnicodeType:
+        if isinstance(value, str):
             return format_string(value)
         elif isinstance(value, datetime.datetime):
             return format_string(value.strftime("%Y-%m-%d %H:%M:%S"))
@@ -49,7 +56,7 @@ class SqlFormat(object):
             condition:dict            
         """
         conditions = []
-        for k,v in condition.iteritems():
+        for k,v in iteritems(condition):
             if isinstance(v, tuple) or isinstance(v, list):
                 assert len(v) >= 2
                 conditions.append(self.get_condition_str(k, v[1], v[0]))
@@ -71,10 +78,9 @@ def dbo(commit=False):
                     conn.commit()  
                     return cursor.rowcount                         
                 else:
-                    as_dict = kwargs.get('as_dict', False)
                     sql = func(self, *args, **kwargs)
                     cursor.execute(sql) 
-                    return cursor.fetchallDict() if as_dict else cursor.fetchall()             
+                    return cursor.fetchall()             
             except:
                 if commit:
                     if conn: conn.rollback()  
@@ -93,7 +99,7 @@ class SqlConn(SqlFormat):
     def __new__(cls, conn_name='default', *args, **kwargs):
         if conn_name not in cls._conn:
             cls.connect(conn_name, **kwargs)
-        return object.__new__(cls, *args, **kwargs)
+        return object.__new__(cls)
 
     def __init__(self,conn_name='default', *args, **kwargs):
         table = args[0]
@@ -107,7 +113,7 @@ class SqlConn(SqlFormat):
         config = kwargs or settings.MYSQL[conn_name]            
         config.update(settings.SQLDB_POOL)
             
-        pool = PooledDB(creator=MySQLdb, 
+        pool = PooledDB(creator=pymysql, 
                         mincached=config['mincached'], maxcached=config['maxcached'],
                         maxconnections=config['maxconnections'], blocking=config['blocking'],
                         host=config['host'], port=config['port'], db=config['database'],
@@ -123,11 +129,10 @@ class SqlConn(SqlFormat):
         ''' set table '''
         self.table = table
                  
-    def get(self, condition, as_dict=False):
+    def get(self, condition):
         '''
         get one from db with conditions
         @param condition: dict type
-        @param as_dict: return dict type if True   
         '''
         assert len(condition) > 0
 
@@ -137,7 +142,7 @@ class SqlConn(SqlFormat):
             fc = self.get_condition(condition)
             sql = "SELECT * FROM %s WHERE %s" % (self.table, fc)
             cursor.execute(sql) 
-            return cursor.fetchoneDict() if as_dict else cursor.fetchone()
+            return cursor.fetchone()
         except:
             raise
         finally:    
@@ -145,11 +150,10 @@ class SqlConn(SqlFormat):
             if conn: conn.close() 
                     
     @dbo()
-    def getmany(self, condition={}, start=0, limit=0, as_dict=False):
+    def getmany(self, condition={}, start=0, limit=0):
         '''
         get many from db with conditions
         @param condition: dict type
-        @param as_dict: return dict type if True   
         '''        
         fc = self.get_condition(condition)
         if fc:
@@ -160,7 +164,7 @@ class SqlConn(SqlFormat):
         return sql  
 
     @dbo()
-    def get_by_sql(self, sql, as_dict=False):
+    def get_by_sql(self, sql):
         '''
         get from db with sql
         @param sql: sql
@@ -198,7 +202,7 @@ class SqlConn(SqlFormat):
         assert len(data) > 0  
         
         ks, vs = [], []
-        for k,v in data.iteritems():
+        for k,v in iteritems(data):
             vs.append(self.get_value(v))
             ks.append(k)
             
@@ -317,14 +321,14 @@ class Model(object):
     def __new__(cls, *args, **kwargs):
         if len(cls._columns) <= 0:
             pkl = []
-            for k,v in cls.__dict__.iteritems():
+            for k,v in iteritems(cls.__dict__):
                 if isinstance(v,Column):
                     cls._columns[k] = v.field_name
                     if v.primary_key:
                         pkl.append(k)  
                                  
             cls._primary_keys = pkl
-        return object.__new__(cls, *args, **kwargs)
+        return object.__new__(cls)
     
     def __init__(self, conn=None, is_new=True):   
         '''
@@ -348,7 +352,7 @@ class Model(object):
     def _get_db_data(cls, data):
         class_dict = cls.__dict__
         attr = {}
-        for k, v in data.iteritems():
+        for k, v in iteritems(data):
             ck = k
             cv = class_dict.get(k)
             if isinstance(cv, Column):
@@ -366,7 +370,7 @@ class Model(object):
         ''' 
         conn = cls.get_conn()
         cond = cls._get_db_data(condition)
-        obj = conn.get(cond, as_dict=True)  
+        obj = conn.get(cond)  
         if not obj:
             return None
         return cls._create_object(conn, obj)
@@ -384,7 +388,7 @@ class Model(object):
         conn = cls.get_conn()
         cond = cls._get_db_data(condition)
         co = functools.partial(cls._create_object, conn)
-        return map(co, conn.getmany(cond, start=start, limit=limit, as_dict=True))
+        return map(co, conn.getmany(cond, start=start, limit=limit))
 
     @classmethod
     def create(cls, **data):
@@ -402,7 +406,7 @@ class Model(object):
         @param obj: result get from mysql
         '''
         instance = cls(conn, False)
-        for k,fn in instance._columns.iteritems():
+        for k,fn in iteritems(instance._columns):
             value = obj.get(fn)
             setattr(instance, k, value)                
         return instance   
@@ -422,7 +426,7 @@ class Model(object):
         @param sql: sql
         '''          
         conn = cls.get_conn()
-        return conn.get_by_sql(sql, as_dict=True)
+        return conn.get_by_sql(sql)
     
     def _get_filed_name(self, fname):
         ''' get field name '''
@@ -439,7 +443,7 @@ class Model(object):
         attr_dict = self.__dict__
         class_dict = self.__class__.__dict__
         data = {}
-        for k, fn in self._columns.iteritems():
+        for k, fn in iteritems(self._columns):
             v = attr_dict.get(k) or class_dict.get(k)
             value = v
             if isinstance(v, Column):
