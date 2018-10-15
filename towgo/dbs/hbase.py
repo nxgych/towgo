@@ -159,6 +159,7 @@ class Column(object):
         '''
         get column value
         '''
+        value = value.decode('UTF8')
         if self.read_format is None:
             return value
         return  self.read_format(value) 
