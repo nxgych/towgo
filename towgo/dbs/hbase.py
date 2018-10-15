@@ -63,7 +63,7 @@ class Connection(object):
         self.conn_name = conn_name
         self.table_name = table_name.encode("UTF8")
         
-        self.cf = self._getColumnFamilyDefault(cf)
+        self.cf = self._getColumnFamilyDefault(cf.encode('UTF8'))
         
     @classmethod
     def connect(cls, conn_name="default", **kwargs):
@@ -130,35 +130,37 @@ class Column(object):
     hbase column definition class
     '''
     
-    def __init__(self, field_name, primary_key=-1, value_type=str):    
+    def __init__(self, field_name, read_format=None, primary_key=-1):    
         '''
         @param field_name: field name
                if you have several column family, you can add column family as prefix of field name
                and ignore the Model variable '__column_family__'
                like this:
-                   id = Column("cf:id", primary_key=0, value_type=int)
-                   age = Column("cfattr:age", value_type=str)   
-                   age = Column("cfattr:age", value_type=int)         
+                   id = Column("cf:id",  read_format=str, primary_key=0)
+                   age = Column("cfattr:age", read_format=str)   
+                   age = Column("cfattr:age", read_format=int)   
+        @param read_format: read_format is a function you except to transfer the field value when read from hbase,
+               default is None      
         @param primary_key: default is -1,the value means the location of primary key that start with 0,
                you should set the value if you wanna the field value to be part of primary key and 
-               it will join by the delimiter sign of the Model variable '__primary_key_delimiter__'.
-        @param value_type: value type is a function you except to transfer the field value,
-               default is 'str' function      
+               it will join by the delimiter sign of the Model variable '__primary_key_delimiter__'.  
         '''               
         if not field_name:
             raise HbaseException("column name must not be null")
-        if not hasattr(value_type,'__call__'):
-            raise HbaseException("'%s' is not a function" % value_type)
+        if not hasattr(read_format,'__call__'):
+            raise HbaseException("'%s' is not a function" % read_format)
 
         self.field_name = field_name.encode("UTF8")
-        self.value_type = value_type 
+        self.read_format = read_format 
         self.primary_key = primary_key
                 
     def getValue(self, value):  
         '''
         get column value
         '''
-        return  self.value_type(value) 
+        if self.read_format is None:
+            return value
+        return  self.read_format(value) 
     
 class Model(object):  
     """
@@ -173,9 +175,9 @@ class Model(object):
             __column_family__ = "cf:"          # column family default is 'cf:'
             __primary_key_delimiter__ = "_"    # delimiter of primary keys default is '_'      
         
-            id = Column("id", primary_key=0, value_type=int)
-            name = Column("name", value_type=str)
-            age = Column("age", value_type=int)    
+            id = Column("id", read_format=str, primary_key=0)
+            name = Column("name", read_format=str)
+            age = Column("age", read_format=int)    
 
         #get
         test = Test.get('a')
@@ -205,12 +207,12 @@ class Model(object):
     '''
     table name, you must define this variable in your model
     '''   
-    __table_name__ = b''  
+    __table_name__ = ''  
     
     '''
     column family, default is 'cf:', you can redefine this variable in your model
     '''
-    __column_family__ = b'cf:'   # column family default is 'cf:'
+    __column_family__ = 'cf:'   # column family default is 'cf:'
     
     '''
     delemiter of primary keys, default is '_', you can redefine this variable in your model
