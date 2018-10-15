@@ -147,8 +147,9 @@ class Column(object):
         '''               
         if not field_name:
             raise HbaseException("column name must not be null")
-        if not hasattr(read_format,'__call__'):
-            raise HbaseException("'%s' is not a function" % read_format)
+        if read_format is not None:
+            if not hasattr(read_format,'__call__'):
+                raise HbaseException("'%s' is not a function" % read_format)
 
         self.field_name = field_name.encode("UTF8")
         self.read_format = read_format 
