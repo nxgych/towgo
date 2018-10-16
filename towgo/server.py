@@ -193,7 +193,7 @@ class TornadoTcpServer(BaseServer):
         s.sendall(data)  
         
         result = s.recv(65535)  
-        print 'received:', repr(result)  
+        print('received:', repr(result))
         
         s.close()       
     """
@@ -263,7 +263,7 @@ class TwistedTcpServer(BaseServer):
         s.sendall(data)  
         
         result = s.recv(65535)  
-        print 'received:', repr(result)  
+        print('received:', repr(result)) 
         
         s.close()       
     """

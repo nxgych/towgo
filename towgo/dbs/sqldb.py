@@ -294,7 +294,7 @@ class Model(object):
         
         #get    
         user = User.get(id=1)
-        print user.name
+        print(user.name)
         
         #delete
         user.delete() 

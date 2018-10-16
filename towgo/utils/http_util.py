@@ -7,6 +7,9 @@ Created on 2017年1月9日
 '''
 
 import sys
+import json
+import re
+from functools import reduce 
 
 PY2 = sys.version_info[0] ==2
 if PY2:
@@ -15,9 +18,7 @@ if PY2:
 else:
     import http.client as httplib
     import urllib.request as urllib2
-    
-import json
-import re
+
 from six import iteritems
 
 def get_request_url(path, params={}):
@@ -80,7 +81,7 @@ def ip_int(ip):
     string ip to int ip
     @param ip: string ip 
     '''
-    if not (isinstance(ip, str) or isinstance(ip, unicode)):
+    if not isinstance(ip, str):
         raise TypeError("'ip' must be a string type")
     if not re.match(r'^\d+.\d+.\d+.\d+$',ip):
         raise ValueError("illegal ip : %s" % ip)
@@ -91,7 +92,7 @@ def ip_str(ip):
     int ip to str ip
     @param ip: int ip 
     '''
-    if not (isinstance(ip, int) or isinstance(ip, long)):
-        raise TypeError("'ip' must be a integer or long type")
-    fun = lambda x: '.'.join([str(x/(256**i)%256) for i in range(3,-1,-1)])
+    if not isinstance(ip, int):
+        raise TypeError("'ip' must be a integer type")
+    fun = lambda x: '.'.join([str(x/(256**i)%256).split('.')[0] for i in range(3,-1,-1)])
     return fun(int(ip))

@@ -55,13 +55,13 @@ class TornadoConnection(object):
     def read_request(self):
         try:
             # delimiter : \0
-            self._stream.read_until("\0", self.handle_request)
+            self._stream.read_until(b"\0", self.handle_request)
         except StreamClosedError:
             raise
 
     def write(self, message):
         try:
-            self._stream.write(message)
+            self._stream.write(message.encode('UTF8'))
         except StreamClosedError:
             logger.warn("Stream closed!")    
         except Exception:
@@ -133,7 +133,7 @@ class TwistedConnection(protocol.ProcessProtocol):
         handler = self.handler_mappings.get(cmdId)
 
         def error(failure):
-            logger.error(failure)
+            logger.error(str(failure))
             self.write(Result(cmdId,'Handler error!')()) 
                     
         if not handler:
@@ -147,7 +147,7 @@ class TwistedConnection(protocol.ProcessProtocol):
                 self.write(Result(cmdId,'Illegal request!')())              
                                 
     def write(self, data):
-        self.transport.write(data)    
+        self.transport.write(data.encode('UTF8'))    
 
     @classmethod    
     def get_client(cls, client_ip): 

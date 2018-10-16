@@ -182,9 +182,9 @@ class Model(object):
 
         #get
         test = Test.get('a')
-        print test.id
-        print test.name
-        print test.age
+        print(test.id)
+        print(test.name)
+        print(test.age)
     
         #save or update
         test = Test()

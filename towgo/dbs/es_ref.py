@@ -56,11 +56,10 @@ class Connection(object):
         conn = self.get_conn()
         body = {}
         if doc_type and mappings:
-            conn.indices.put_mapping(doc_type, mappings, index)
             body = {"mappings":{doc_type:mappings}}
             
-        body = json.dumps(body) if body is not None else body
-        conn.perform_request("PUT", "/%s" % index, None, body)
+        body = json.dumps(body)
+        conn.perform_request("PUT", "/%s" % index, None, body.encode('UTF8'))
 
     def delete_index(self, index):   
         """
@@ -79,7 +78,7 @@ class Connection(object):
         conn = self.get_conn()
         url = "/%s/%s/%s" % (index, doc_type, "_search")
         body = json.dumps(body) if body is not None else body
-        result = conn.perform_request("GET", url, None, body)
+        result = conn.perform_request("GET", url, None, body.encode("UTF8"))
         ret_json = json.loads(result[2])
         return ret_json['hits']['hits']
 
@@ -103,7 +102,7 @@ class Connection(object):
         conn = self.get_conn()
         url = "/%s/%s/%s" % (index, doc_type, str(doc_id))
         body = json.dumps(body) if body is not None else body
-        result = conn.perform_request("PUT", url, None, body)
+        result = conn.perform_request("PUT", url, None, body.encode('UTF8'))
         ret_json = json.loads(result[2])
         return ret_json
     
@@ -152,9 +151,10 @@ class Connection2(object):
         """
         create index and put mapping
         """
-        self.conn.indices.create(index=index_name)
-        if doc_type and mappings:
-            self.conn.indices.put_mapping(doc_type, mappings, index_name)
+        if not self.conn.indices.exists(index_name):
+            self.conn.indices.create(index=index_name)
+            if doc_type and mappings:
+                self.conn.indices.put_mapping(doc_type, mappings, index_name)
             
     def delete_index(self, index):   
         """

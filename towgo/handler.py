@@ -379,6 +379,7 @@ class Request(object):
             self.body  = {}
         else:    
             try:
+                body = body.decode('UTF8')
                 self.body = escape.json_decode(body[:-1] if body.endswith('\0') else body) 
             except:
                 raise TowgoException("Illegal JSON string!")    
