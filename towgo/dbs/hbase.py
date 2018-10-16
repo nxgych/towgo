@@ -159,7 +159,6 @@ class Column(object):
         '''
         get column value
         '''
-        value = value.decode('UTF8')
         if self.read_format is None:
             return value
         return  self.read_format(value) 
@@ -221,10 +220,9 @@ class Model(object):
     '''
     __primary_key_delimiter__ = b'_'
     
-    _primary_keys = []
-    _columns = {}
-    
     def __new__(cls, *args, **kwargs):
+        cls._primary_keys = []
+        cls._columns = {}
         if len(cls._columns) <= 0:
             pkl = []
             for k,v in iteritems(cls.__dict__):

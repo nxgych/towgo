@@ -315,10 +315,9 @@ class Model(object):
     '''mysql table name, you must define this variable in your model'''
     __table_name__ = ''
     
-    _primary_keys = []
-    _columns = {}
-    
     def __new__(cls, *args, **kwargs):
+        cls._primary_keys = []
+        cls._columns = {}
         if len(cls._columns) <= 0:
             pkl = []
             for k,v in iteritems(cls.__dict__):
