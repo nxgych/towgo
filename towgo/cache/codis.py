@@ -67,7 +67,8 @@ class Connection(object):
                     conn = redis.Redis(
                         connection_pool=redis.ConnectionPool(
                             host=proxyip, port=int(proxyport), db=self.__db, 
-                            password=self.__passwd, max_connections=self.__max_connections)
+                            password=self.__passwd, max_connections=self.__max_connections),
+                        decode_responses=True
                     )
                     self.__connPool.append(conn)
             else:
