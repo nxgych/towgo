@@ -31,9 +31,9 @@ class Connection(object):
         self.__proxyPath = kwargs.pop('zookeeper_path', '/jodis/cache')
         
         self.__pool = kwargs.pop('pool', False)
-        self.__kwargs = kwargs
+        self.__businessID = kwargs.pop('business_id', '')
         
-        self.__businessID = kwargs.get('business_id', '')
+        self.__kwargs = kwargs
         
         self.__zk = KazooClient(self.__zkAddr)
         self.__connPoolIndex = -1
