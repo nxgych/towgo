@@ -104,7 +104,7 @@ class RedisCache(_Cache):
         self.conn = redis.Redis(connection_pool=self._pools[conn_name], decode_responses=True)  
 
     @classmethod
-    def connect(cls, conn_name, **kwargs):
+    def connect(cls, conn_name='default', **kwargs):
         config = kwargs or settings.REDIS[conn_name]
         cls._pools[conn_name] = redis.ConnectionPool(**config)
        
@@ -127,6 +127,6 @@ class CodisCache(_Cache):
         self.conn = self._connections[conn_name].getResource()
         
     @classmethod
-    def connect(cls, conn_name, **kwargs):   
+    def connect(cls, conn_name='default', **kwargs):   
         configs = kwargs or settings.CODIS[conn_name]
         cls._connections[conn_name] = Connection(**configs)

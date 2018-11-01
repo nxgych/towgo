@@ -26,16 +26,12 @@ class Connection(object):
                zookeeper_path: codis proxy path
                
                pool: use redis pool if True, default is False
-               db: redis db default is 0
-               max_connections: max connections
         '''       
-        self.__zkAddr = kwargs.get('zookeeper_address', '127.0.0.1:2181')
-        self.__proxyPath = kwargs.get('zookeeper_path', '/jodis/cache')
+        self.__zkAddr = kwargs.pop('zookeeper_address', '127.0.0.1:2181')
+        self.__proxyPath = kwargs.pop('zookeeper_path', '/jodis/cache')
         
-        self.__pool = kwargs.get('pool', False)
-        self.__db = kwargs.get('db', 0)
-        self.__passwd = kwargs.get('password', None)
-        self.__max_connections = kwargs.get('max_connections', None)
+        self.__pool = kwargs.pop('pool', False)
+        self.__kwargs = kwargs
         
         self.__businessID = kwargs.get('business_id', '')
         
@@ -66,18 +62,14 @@ class Connection(object):
                     proxyport = proxyinfo["addr"].split(':')[1]
                     conn = redis.Redis(
                         connection_pool=redis.ConnectionPool(
-                            host=proxyip, port=int(proxyport), db=self.__db, 
-                            password=self.__passwd, max_connections=self.__max_connections),
-                        decode_responses=True
+                            host=proxyip, port=int(proxyport), decode_responses=True, **self.__kwargs),
                     )
                     self.__connPool.append(conn)
             else:
                 for proxyinfo in self.__proxylist:
                     proxyip = proxyinfo["addr"].split(':')[0]
                     proxyport = proxyinfo["addr"].split(':')[1]
-                    conn = redis.Redis(host=proxyip, port=int(proxyport), db=self.__db, 
-                                       password=self.__passwd, max_connections=self.__max_connections,
-                                       decode_responses=True)
+                    conn = redis.Redis(host=proxyip, port=int(proxyport), decode_responses=True, **self.__kwargs)
                     self.__connPool.append(conn)          
         except:
             raise
