@@ -74,8 +74,10 @@ class SessionManager(object):
             session_id = None
             hmac_key = None
         else:
-            session_id = request_handler.get_secure_cookie("session_id").decode('UTF8')
-            hmac_key = request_handler.get_secure_cookie("verification").decode('UTF8')
+            session_id = request_handler.get_secure_cookie("session_id")
+            session_id = session_id.decode('UTF8') if session_id else session_id
+            hmac_key = request_handler.get_secure_cookie("verification")
+            hmac_key = hmac_key.decode('UTF8') if hmac_key else hmac_key
         if session_id == None:
             session_exists = False
             session_id = self._generate_id()

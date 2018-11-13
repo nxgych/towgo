@@ -8,11 +8,11 @@ Created on 2017年1月9日
 
 import os
 
-#--------------------------required configuration below-------------------------
-PROJECT_PATH = os.path.dirname(os.path.dirname(__file__))
-
 #settings环境变量，请勿修改
 _SETTINGS_MODULE_ENVIRON = "TOWGO_SETTINGS"
+
+#--------------------------required configuration below-------------------------
+PROJECT_PATH = os.path.dirname(os.path.dirname(__file__))
 
 MULTI_PROCESS = True   #multiple process if true 
 THREAD_POOL_SIZE = 50   #async thread pool size or twisted thread pool size
@@ -29,6 +29,7 @@ TORNADO_ADVANCED_SERVER_PORT = ()
 COOKIE_SECRET = "TOWGO_COOKIE_SECRET"
 #tornado xsrf configuration
 TORNADO_XSRF_COOKIES = False
+
 #tornado debug switch
 TORNADO_DEBUG = False
 
