@@ -57,7 +57,7 @@ def httplib_request(host, port, path, method="GET", params={}, headers={}, timeo
     finally:
         if http_client: http_client.close()
 
-def urllib_request(url, method='GET', params={}, headers={}):
+def urllib_request(url, method='GET', params={}, headers={}, timeout=10):
     '''
     @param url: url
     @param method: GET or POST
@@ -72,7 +72,7 @@ def urllib_request(url, method='GET', params={}, headers={}):
         req = urllib2.Request(url, json.dumps(params).encode('UTF8'), headers)
      
     if req:         
-        response = urllib2.urlopen(req)
+        response = urllib2.urlopen(req, timeout=timeout)
         result = response.read()
         return result
     
