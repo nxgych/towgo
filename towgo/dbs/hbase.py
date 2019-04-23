@@ -25,7 +25,7 @@ def operate(func):
         exception = None
         for _ in range(3):
             try:
-                with self.pool.connection(timeout=30) as conn:
+                with self.pool.connection(timeout=Connection._pool_timeout) as conn:
                     self.check_table(conn)
                     self.table = conn.table(self.table_name)  
                     return func(self, *args, **kwargs)   
@@ -47,6 +47,7 @@ class Connection(object):
     '''
     
     _conn = {}
+    _pool_timeout = 10 #seconds
     
     def __new__(cls, conn_name="default", *args, **kwargs):
         if conn_name not in cls._conn:
@@ -68,6 +69,7 @@ class Connection(object):
     @classmethod
     def connect(cls, conn_name="default", **kwargs):
         size = kwargs.pop('pool_size', 10)
+        cls._pool_timeout = kwargs.pop('pool_timeout', 10)
         cls._conn[conn_name] = happybase.ConnectionPool(size=size, **kwargs)
     
     @property    
